@@ -22,7 +22,7 @@ npm install
 ### 2. Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. In the SQL Editor, run the contents of `supabase/schema.sql`.
+2. In the SQL Editor, run the contents of `supabase/schema.sql` (includes table for Telegram category buttons).
 3. (Optional) Enable Realtime for `public.transactions` if you want live updates: Database → Replication → enable for `transactions`.
 4. Copy **Project URL** and **anon key** from Settings → API. For the webhook, also copy **service_role** key (keep it secret).
 
@@ -36,9 +36,9 @@ Copy `.env.example` to `.env.local` and fill in:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for Telegram webhook) |
 | `TELEGRAM_BOT_TOKEN` | From [@BotFather](https://t.me/BotFather) |
-| `TELEGRAM_USER_ID` | Supabase Auth user UUID — Telegram transactions are stored under this user |
+| `TELEGRAM_USER_ID` | (Optional) Fallback single user UUID — if set, unlinked Telegram chats use this user. For multi-user, each person links via dashboard **Link Telegram**. |
 
-To get `TELEGRAM_USER_ID`: sign up in the web app, then copy your user id from Supabase Dashboard → Authentication → Users, or from the browser after login (e.g. from session).
+**Multi-user:** Each user signs up on the web app, then in the dashboard uses **Link Telegram** → "Buat kode" → sends `/link KODE` to the bot. Their Telegram is then linked to their account.
 
 ### 4. Run locally
 

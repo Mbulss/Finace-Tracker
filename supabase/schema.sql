@@ -30,11 +30,38 @@ CREATE POLICY "Users can insert own transactions"
   ON public.transactions FOR INSERT
   WITH CHECK (auth.uid()::text = user_id);
 
+CREATE POLICY "Users can update own transactions"
+  ON public.transactions FOR UPDATE
+  USING (auth.uid()::text = user_id)
+  WITH CHECK (auth.uid()::text = user_id);
+
 CREATE POLICY "Users can delete own transactions"
   ON public.transactions FOR DELETE
   USING (auth.uid()::text = user_id OR user_id = current_setting('request.jwt.claims', true)::json->>'sub');
 
--- For Telegram bot: we use telegram_user_id as user_id when no web auth.
--- Optional: create a mapping table later (telegram_chat_id -> user_id) if you link Telegram to Supabase Auth.
--- For MVP, use a single "telegram" user or pass user_id from env for bot-only usage.
+-- Session pilih kategori per chat Telegram (untuk tombol kategori)
+CREATE TABLE IF NOT EXISTS public.telegram_category_session (
+  chat_id BIGINT PRIMARY KEY,
+  type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+  category TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+COMMENT ON TABLE public.telegram_category_session IS 'Stores selected category per Telegram chat for button flow';
+
+-- Multi-user: link Telegram chat_id ke user_id (Supabase Auth)
+CREATE TABLE IF NOT EXISTS public.telegram_links (
+  chat_id BIGINT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS public.telegram_link_codes (
+  code TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_telegram_link_codes_expires ON public.telegram_link_codes (expires_at);
+
+COMMENT ON TABLE public.telegram_links IS 'Maps Telegram chat_id to Supabase user_id';
+COMMENT ON TABLE public.telegram_link_codes IS 'One-time codes for linking Telegram to web account';
+
 COMMENT ON TABLE public.transactions IS 'Stores income/expense transactions from web dashboard and Telegram bot';

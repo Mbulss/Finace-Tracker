@@ -3,13 +3,95 @@
 @tailwind utilities;
 
 :root {
-  --surface: #f8f9fa;
+  --surface: #f0f9ff;
   --card: #ffffff;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  --muted: #64748b;
+  --border: #bae6fd;
+  --primary: #0ea5e9;
+  --primary-hover: #0284c7;
+  --income: #059669;
+  --expense: #dc2626;
+  --gradient-start: #e0f2fe;
+  --gradient-mid: #f0f9ff;
+  --gradient-end: #fef3c7;
+}
+
+.dark {
+  --surface: #0f172a;
+  --card: #1e293b;
+  --muted: #94a3b8;
+  --border: #334155;
+  --primary: #38bdf8;
+  --primary-hover: #7dd3fc;
+  --income: #34d399;
+  --expense: #f87171;
+  --gradient-start: #0c4a6e;
+  --gradient-mid: #0f172a;
+  --gradient-end: #1e1b4b;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kurangi delay tap di mobile (300ms) */
+button, [role="button"], a {
+  touch-action: manipulation;
 }
 
 body {
   background: var(--surface);
-  color: #111827;
+  color: #0f172a;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.dark body {
+  color: #e2e8f0;
+}
+
+/* Subtle mesh gradient background for dashboard */
+.bg-mesh {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, var(--gradient-start), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, var(--gradient-mid), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 50%, var(--gradient-end), transparent),
+    var(--surface);
+}
+
+.dark .bg-mesh {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.06), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(30, 41, 59, 0.8), transparent),
+    var(--surface);
+}
+
+/* Auth page hero background */
+.bg-auth-hero {
+  background: radial-gradient(ellipse 100% 80% at 50% -30%, rgba(14, 165, 233, 0.15), transparent 50%),
+    radial-gradient(ellipse 60% 60% at 80% 50%, rgba(5, 150, 105, 0.08), transparent 50%),
+    var(--surface);
+}
+
+.dark .bg-auth-hero {
+  background: radial-gradient(ellipse 100% 80% at 50% -30%, rgba(56, 189, 248, 0.12), transparent 50%),
+    radial-gradient(ellipse 60% 60% at 80% 50%, rgba(52, 211, 153, 0.06), transparent 50%),
+    var(--surface);
+}
+
+/* Mobile: smooth horizontal scroll untuk tabel */
+@layer utilities {
+  .overflow-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-slate-100 dark:bg-slate-800 rounded-full;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-600 rounded-full;
+  }
 }

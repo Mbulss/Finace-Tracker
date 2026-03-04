@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import type { Transaction } from "@/lib/types";
+import { getMonthKey } from "@/lib/utils";
+import { exportTransactionsToCSV } from "@/lib/export-csv";
 import { SummaryCards } from "./SummaryCards";
 import { AddTransactionForm } from "./AddTransactionForm";
 import { TransactionTable } from "./TransactionTable";
 import { ExpensePieChart } from "./ExpensePieChart";
 import { MonthlyBarChart } from "./MonthlyBarChart";
+import { MonthPicker } from "./MonthPicker";
 
 interface DashboardProps {
   userId: string;
@@ -16,12 +18,15 @@ interface DashboardProps {
 
 export function Dashboard({ userId }: DashboardProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [periodType, setPeriodType] = useState<"all" | "month">("month");
   const [monthFilter, setMonthFilter] = useState<string>(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
+  const [liveUpdated, setLiveUpdated] = useState(false);
+  const liveUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
-  const router = useRouter();
 
   const fetchTransactions = useCallback(async () => {
     const { data, error } = await supabase
@@ -30,87 +35,195 @@ export function Dashboard({ userId }: DashboardProps) {
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
     if (!error) setTransactions(data ?? []);
+    setLoading(false);
   }, [supabase, userId]);
 
   useEffect(() => {
     fetchTransactions();
+
     const channel = supabase
-      .channel("transactions")
+      .channel(`transactions:${userId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` },
-        () => fetchTransactions()
+        () => {
+          fetchTransactions();
+          if (liveUpdateTimeoutRef.current) clearTimeout(liveUpdateTimeoutRef.current);
+          setLiveUpdated(true);
+          liveUpdateTimeoutRef.current = setTimeout(() => {
+            setLiveUpdated(false);
+            liveUpdateTimeoutRef.current = null;
+          }, 3000);
+        }
       )
       .subscribe();
+
     return () => {
+      if (liveUpdateTimeoutRef.current) clearTimeout(liveUpdateTimeoutRef.current);
       supabase.removeChannel(channel);
     };
   }, [fetchTransactions, supabase, userId]);
 
-  const filteredByMonth = transactions.filter((t) => {
-    const d = new Date(t.created_at);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    return `${y}-${m}` === monthFilter;
-  });
+  const filteredByMonth =
+    periodType === "all"
+      ? transactions
+      : transactions.filter((t) => getMonthKey(new Date(t.created_at)) === monthFilter);
+
+  const income = filteredByMonth.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const expense = filteredByMonth.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  const balance = income - expense;
 
   const handleDelete = async (id: string) => {
     await supabase.from("transactions").delete().eq("id", id).eq("user_id", userId);
     fetchTransactions();
   };
 
+  const handleEdit = async (
+    id: string,
+    data: { type: "income" | "expense"; amount: number; category: string; note: string }
+  ) => {
+    await supabase
+      .from("transactions")
+      .update({ type: data.type, amount: data.amount, category: data.category, note: data.note })
+      .eq("id", id)
+      .eq("user_id", userId);
+    fetchTransactions();
+  };
+
+  const handleExportCSV = () => {
+    exportTransactionsToCSV(
+      filteredByMonth,
+      periodType === "all" ? "transaksi-semua.csv" : `transaksi-${monthFilter}.csv`
+    );
+  };
+
+  const periodLabel =
+    periodType === "all"
+      ? "Semua waktu"
+      : (() => {
+          const [y, m] = monthFilter.split("-").map(Number);
+          return new Date(y, m - 1, 1).toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+        })();
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Selamat pagi" : hour < 18 ? "Selamat siang" : "Selamat malam";
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Finance Tracker</h1>
-        <div className="flex items-center gap-3">
+    <div className="mx-auto max-w-6xl space-y-5 sm:space-y-8 px-0 sm:px-0">
+      <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between animate-fade-in-up">
+        <div className="flex flex-wrap items-start gap-3 min-w-0">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-primary dark:text-sky-400">{greeting} 👋</p>
+            <h1 className="mt-0.5 text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-3xl">Dashboard</h1>
+            <p className="mt-1 text-sm text-muted dark:text-slate-400">Ringkasan keuangan kamu</p>
+          </div>
+          {liveUpdated && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 dark:bg-primary/25 px-3 py-2 text-xs font-medium text-primary dark:text-sky-400 animate-fade-in shrink-0">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary dark:bg-sky-400" />
+              Data diperbarui
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-3 w-full sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex rounded-xl bg-slate-100 dark:bg-slate-700 p-1 shadow-sm w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setPeriodType("all")}
+              className={`flex-1 sm:flex-none min-h-[44px] rounded-lg px-4 py-3 sm:py-2.5 text-sm font-medium transition ${
+                periodType === "all"
+                  ? "bg-card dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow soft"
+                  : "text-muted dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              }`}
+            >
+              Semua waktu
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriodType("month")}
+              className={`flex-1 sm:flex-none min-h-[44px] rounded-lg px-4 py-3 sm:py-2.5 text-sm font-medium transition ${
+                periodType === "month"
+                  ? "bg-card dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow soft"
+                  : "text-muted dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              }`}
+            >
+              Per bulan
+            </button>
+          </div>
+          {periodType === "month" && (
+            <div className="w-full sm:w-auto">
+              <MonthPicker value={monthFilter} onChange={setMonthFilter} />
+            </div>
+          )}
           <button
             type="button"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              router.push("/auth");
-              router.refresh();
-            }}
-            className="text-sm text-muted hover:text-gray-700"
+            onClick={handleExportCSV}
+            disabled={filteredByMonth.length === 0}
+            className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-border dark:border-slate-600 bg-card dark:bg-slate-800 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-card disabled:opacity-50 active:scale-[0.98]"
           >
-            Sign out
+            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export CSV
           </button>
-          <div className="flex items-center gap-2">
-          <label htmlFor="month" className="text-sm text-muted">Filter by month</label>
-            <input
-              id="month"
-              type="month"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-              className="rounded-lg border border-border px-3 py-2 text-sm"
-            />
-          </div>
         </div>
       </header>
 
-      <SummaryCards transactions={filteredByMonth} />
+      {loading ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 animate-pulse">
+              <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-600" />
+              <div className="mt-3 h-8 w-32 rounded bg-slate-200 dark:bg-slate-600" />
+              <div className="mt-2 h-3 w-20 rounded bg-slate-100 dark:bg-slate-700" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
+          <SummaryCards
+            transactions={transactions}
+            monthFilter={periodType === "all" ? "all" : monthFilter}
+          />
+        </div>
+      )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="bg-card rounded-xl shadow-card p-6 border border-border">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Add Transaction</h2>
+      {!loading && balance < 0 && filteredByMonth.length > 0 && (
+        <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50/80 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+          <span className="font-medium">Saldo negatif</span> — cek grafik kategori untuk lihat pengeluaran terbesar.
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
+          <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Tambah Transaksi</h2>
           <AddTransactionForm userId={userId} onSuccess={fetchTransactions} />
         </section>
-        <section className="bg-card rounded-xl shadow-card p-6 border border-border">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Expense by Category</h2>
+        <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
+          <h2 className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Pengeluaran per Kategori</h2>
+          <p className="mb-4 text-sm text-muted dark:text-slate-400">{periodLabel}</p>
           <ExpensePieChart transactions={filteredByMonth} />
         </section>
       </div>
 
-      <section className="bg-card rounded-xl shadow-card p-6 border border-border">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Monthly Income vs Expense</h2>
-        <MonthlyBarChart transactions={transactions} />
+      <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.25s", opacity: 0, animationFillMode: "forwards" }}>
+        <h2 className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Pemasukan vs Pengeluaran</h2>
+        <p className="mb-4 text-sm text-muted dark:text-slate-400">
+          {periodType === "all" ? "Semua waktu (per bulan)" : "6 bulan terakhir"}
+        </p>
+        <MonthlyBarChart
+          transactions={transactions}
+          showAllMonths={periodType === "all"}
+        />
       </section>
 
-      <section className="bg-card rounded-xl shadow-card p-6 border border-border">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Transactions</h2>
+      <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 overflow-hidden shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.3s", opacity: 0, animationFillMode: "forwards" }}>
+        <h2 className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Daftar Transaksi</h2>
+        <p className="mb-4 text-sm text-muted dark:text-slate-400">{periodLabel}</p>
         <TransactionTable
           transactions={filteredByMonth}
           onDelete={handleDelete}
+          onEdit={handleEdit}
         />
       </section>
     </div>

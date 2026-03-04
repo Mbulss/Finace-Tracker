@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Dashboard } from "@/components/Dashboard";
 
 export default async function Home() {
@@ -11,8 +12,8 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8">
+    <DashboardLayout>
       <Dashboard userId={user.id} />
-    </main>
+    </DashboardLayout>
   );
 }

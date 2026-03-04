@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "tunnel": "npx localtunnel --port 3000"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

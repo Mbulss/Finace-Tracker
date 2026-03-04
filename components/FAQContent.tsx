@@ -1,0 +1,116 @@
+"use client";
+
+import { useState } from "react";
+
+const FAQ_ITEMS = [
+  {
+    id: "apa-itu",
+    question: "Apa itu Finance Tracker?",
+    icon: "💰",
+    answer: "Finance Tracker adalah aplikasi untuk mencatat pemasukan dan pengeluaran pribadi. Kamu bisa input transaksi lewat dashboard web atau lewat bot Telegram. Data disimpan aman per akun dan bisa dilihat dalam bentuk ringkasan, grafik, serta tabel.",
+  },
+  {
+    id: "tambah-web",
+    question: "Bagaimana cara menambah transaksi dari web?",
+    icon: "➕",
+    answer: "Di halaman Dashboard, gunakan form \"Tambah Transaksi\": pilih tipe (Pemasukan/Pengeluaran), kategori, isi nominal (otomatis terformat dengan titik pemisah ribuan), dan catatan opsional. Lalu klik \"Simpan\". Transaksi bisa diedit atau dihapus dari tabel di bawah.",
+  },
+  {
+    id: "link-telegram",
+    question: "Bagaimana cara menghubungkan akun dengan Telegram?",
+    icon: "🔗",
+    answer: "Buka menu Link Telegram di sidebar → klik \"Buat kode\" → copy perintah yang muncul (contoh: /link ABC123). Buka bot Finance Tracker di Telegram, kirim perintah itu. Bot akan konfirmasi \"Akun terhubung!\". Setelah itu, transaksi yang kamu input lewat bot akan masuk ke dashboard akun ini.",
+  },
+  {
+    id: "pakai-bot",
+    question: "Bagaimana cara pakai bot Telegram?",
+    icon: "📱",
+    answer: "Setelah akun terhubung, kirim /start di bot. Pilih \"Pemasukan\" atau \"Pengeluaran\" → pilih kategori dari tombol → ketik nominal (boleh pakai rb/jt, misal 25rb atau 1jt) dan catatan. Atau ketik langsung format: +50000 gaji atau -25rb kopi.",
+  },
+  {
+    id: "ubah-password",
+    question: "Bagaimana cara ubah password?",
+    icon: "🔒",
+    answer: "Buka menu Profil di sidebar (di atas Keluar). Di section \"Ubah Password\", isi password baru dan konfirmasi, lalu klik \"Ubah password\". Password berhasil diubah akan muncul notifikasi hijau di atas form.",
+  },
+  {
+    id: "export",
+    question: "Bisakah export data transaksi?",
+    icon: "📥",
+    answer: "Ya. Di Dashboard, gunakan filter bulan jika perlu, lalu klik tombol \"Export CSV\". File CSV akan terunduh berisi transaksi yang tampil (dengan format nominal dan tanggal yang rapi), siap dibuka di Excel atau Google Sheets.",
+  },
+  {
+    id: "kategori",
+    question: "Kategori apa saja yang tersedia?",
+    icon: "📂",
+    answer: "Pemasukan: Salary, Freelance, Investment, Gift, Other. Pengeluaran: Food, Transport, Shopping, Bills, Health, Entertainment, Other. Semua kategori ini bisa dipilih baik di web maupun di bot Telegram.",
+  },
+];
+
+export function FAQContent() {
+  const [openId, setOpenId] = useState<string | null>(FAQ_ITEMS[0]?.id ?? null);
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border-2 border-primary/20 dark:border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/15 dark:to-primary/10 p-6 text-center shadow-card">
+        <p className="text-4xl mb-2" aria-hidden>❓</p>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Pertanyaan yang sering diajukan</h2>
+        <p className="mt-1 text-sm text-muted dark:text-slate-400 max-w-xl mx-auto">
+          Cari jawaban singkat tentang cara pakai Finance Tracker. Klik pertanyaan untuk membuka jawabannya.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {FAQ_ITEMS.map((item) => {
+          const isOpen = openId === item.id;
+          return (
+            <div
+              key={item.id}
+              className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 shadow-card overflow-hidden transition-shadow hover:shadow-md"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenId(isOpen ? null : item.id)}
+                className="flex w-full items-center gap-4 p-4 sm:p-5 text-left focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-inset rounded-2xl"
+                aria-expanded={isOpen}
+                aria-controls={`faq-answer-${item.id}`}
+                id={`faq-question-${item.id}`}
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-lg" aria-hidden>
+                  {item.icon}
+                </span>
+                <span className="flex-1 font-medium text-slate-800 dark:text-slate-100">{item.question}</span>
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                  aria-hidden
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </button>
+              <div
+                id={`faq-answer-${item.id}`}
+                role="region"
+                aria-labelledby={`faq-question-${item.id}`}
+                className={`grid transition-[grid-template-rows] duration-200 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+              >
+                <div className="overflow-hidden">
+                  <div className="border-t border-border dark:border-slate-600 bg-slate-50/80 dark:bg-slate-700/50 px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{item.answer}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="rounded-xl border border-primary/30 dark:border-primary/40 bg-primary/5 dark:bg-primary/10 p-4 text-center">
+        <p className="text-sm text-slate-700 dark:text-slate-300">
+          Masih ada pertanyaan? Pastikan akun Telegram sudah terhubung dan coba fitur &quot;Cara pakai&quot; di bot.
+        </p>
+      </div>
+    </div>
+  );
+}

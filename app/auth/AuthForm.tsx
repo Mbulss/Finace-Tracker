@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AuthForm() {
   const [email, setEmail] = useState("");
@@ -21,7 +22,7 @@ export function AuthForm() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage("Check your email to confirm sign up.");
+        setMessage("Cek email kamu untuk konfirmasi pendaftaran.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -29,20 +30,35 @@ export function AuthForm() {
         router.refresh();
       }
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : "Something went wrong.");
+      setMessage(err instanceof Error ? err.message : "Terjadi kesalahan.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-4">
-      <div className="w-full max-w-sm bg-card rounded-xl shadow-card p-8 border border-border">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Finance Tracker</h1>
-        <p className="text-muted text-sm mb-6">Sign in to manage your transactions</p>
+    <div className="relative flex min-h-screen items-center justify-center bg-auth-hero p-4">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
+      {/* Decorative blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 top-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl dark:bg-primary/20" />
+        <div className="absolute -right-20 bottom-1/4 h-48 w-48 rounded-full bg-primary/5 blur-3xl dark:bg-primary/10" />
+      </div>
+      <div className="relative w-full max-w-md animate-fade-in-up rounded-2xl border border-border dark:border-slate-700 bg-card/95 dark:bg-slate-800/95 p-8 shadow-card backdrop-blur-sm">
+        <div className="mb-6 flex items-center justify-center gap-3">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-white shadow-lg shadow-primary/25">
+            <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Finance Tracker</span>
+        </div>
+        <p className="mb-6 text-center text-sm text-muted dark:text-slate-400">Kelola keuangan kamu dengan mudah — web & Telegram</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Email
             </label>
             <input
@@ -51,12 +67,12 @@ export function AuthForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-gray-400 outline-none"
-              placeholder="you@example.com"
+              className="w-full rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 px-4 py-3 text-sm placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder="kamu@example.com"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Password
             </label>
             <input
@@ -65,28 +81,28 @@ export function AuthForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-gray-400 outline-none"
+              className="w-full rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 px-4 py-3 text-sm placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           {message && (
-            <p className={`text-sm ${message.includes("confirm") ? "text-green-600" : "text-red-600"}`}>
+            <p className={`text-sm ${message.includes("Cek email") ? "text-income" : "text-expense"}`}>
               {message}
             </p>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50"
+            className="w-full rounded-xl bg-primary py-3.5 font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover hover:shadow-primary/30 disabled:opacity-50 active:scale-[0.98]"
           >
-            {loading ? "..." : isSignUp ? "Sign up" : "Sign in"}
+            {loading ? "Memproses..." : isSignUp ? "Daftar" : "Masuk"}
           </button>
         </form>
         <button
           type="button"
           onClick={() => { setIsSignUp((v) => !v); setMessage(""); }}
-          className="mt-4 w-full text-sm text-muted hover:text-gray-700"
+          className="mt-4 w-full text-sm text-muted transition hover:text-slate-700 dark:hover:text-slate-300 dark:text-slate-400"
         >
-          {isSignUp ? "Already have an account? Sign in" : "Create an account"}
+          {isSignUp ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar"}
         </button>
       </div>
     </div>

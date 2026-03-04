@@ -1,0 +1,125 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/auth");
+    router.refresh();
+  }
+
+  return (
+    <>
+      {/* Overlay mobile */}
+      <div
+        className="fixed inset-0 z-40 bg-slate-900/50 lg:hidden backdrop-blur-[2px]"
+        aria-hidden
+        onClick={onClose}
+        style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? "auto" : "none" }}
+      />
+      <aside
+        className={`
+          fixed left-0 top-0 z-50 h-full w-64 border-r border-border bg-card dark:bg-slate-800 dark:border-slate-700 shadow-sidebar
+          transition-transform duration-200 ease-out lg:translate-x-0
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        <div className="flex h-full flex-col p-4 pl-[max(1rem,env(safe-area-inset-left))]">
+          <div className="flex items-center justify-between px-2 py-4 lg:justify-start lg:gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-hover text-white shadow-lg shadow-primary/25">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">Finance</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200 lg:hidden"
+                  aria-label="Tutup menu"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+          <nav className="flex-1 space-y-0.5 pt-6">
+            <Link
+              href="/"
+              onClick={onClose}
+              className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${pathname === "/" ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary" : "text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200"}`}
+            >
+              <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Dashboard
+            </Link>
+            <Link
+              href="/link-telegram"
+              onClick={onClose}
+              className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${pathname === "/link-telegram" ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary" : "text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200"}`}
+            >
+              <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Link Telegram
+            </Link>
+            <Link
+              href="/faq"
+              onClick={onClose}
+              className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${pathname === "/faq" ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary" : "text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200"}`}
+            >
+              <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              FAQ
+            </Link>
+          </nav>
+          <div className="space-y-0.5 border-t border-border pt-4">
+            <Link
+              href="/profile"
+              onClick={onClose}
+              className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${pathname === "/profile" ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary" : "text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200"}`}
+            >
+              <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profil
+            </Link>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-muted transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            >
+              <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Keluar
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}

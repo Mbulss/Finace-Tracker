@@ -11,54 +11,61 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { Transaction } from "@/lib/types";
+import { formatCurrency } from "@/lib/utils";
 
 interface MonthlyBarChartProps {
   transactions: Transaction[];
+  /** Jika true, tampilkan semua bulan (untuk mode "Semua waktu"). Jika false, 6 bulan terakhir. */
+  showAllMonths?: boolean;
 }
 
-export function MonthlyBarChart({ transactions }: MonthlyBarChartProps) {
+export function MonthlyBarChart({ transactions, showAllMonths = false }: MonthlyBarChartProps) {
   const byMonth = transactions.reduce<
     Record<string, { month: string; income: number; expense: number }>
   >((acc, t) => {
     const d = new Date(t.created_at);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+    const label = d.toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
     if (!acc[key]) acc[key] = { month: label, income: 0, expense: 0 };
     if (t.type === "income") acc[key].income += Number(t.amount);
     else acc[key].expense += Number(t.amount);
     return acc;
   }, {});
 
-  const data = Object.entries(byMonth)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-6)
-    .map(([, v]) => v);
+  const sorted = Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b));
+  const data = showAllMonths ? sorted.map(([, v]) => v) : sorted.slice(-6).map(([, v]) => v);
 
   if (data.length === 0) {
-    return <p className="text-muted text-sm py-8">No data for chart.</p>;
+    return (
+      <div className="flex h-[280px] flex-col items-center justify-center rounded-xl bg-slate-50/80 dark:bg-slate-800/50 text-center">
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-muted dark:text-slate-400">
+          <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <p className="text-sm text-muted dark:text-slate-400">Belum ada data bulanan</p>
+        <p className="mt-1 text-xs text-muted dark:text-slate-500">Transaksi akan tampil di sini</p>
+      </div>
+    );
   }
 
   return (
-    <div className="h-[280px]">
+    <div className="h-[260px] min-h-[220px] sm:h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-          <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+          <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#94a3b8" />
+          <YAxis
+            tickFormatter={(v) => (v >= 1e6 ? `${(v / 1e6).toFixed(0)}jt` : `${(v / 1e3).toFixed(0)}k`)}
+            tick={{ fontSize: 12 }}
+            stroke="#94a3b8"
+          />
           <Tooltip formatter={(value: number) => formatCurrency(value)} />
           <Legend />
-          <Bar dataKey="income" fill="#22c55e" name="Income" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="expense" fill="#ef4444" name="Expense" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="income" fill="#059669" name="Pemasukan" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="expense" fill="#dc2626" name="Pengeluaran" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
-}
-
-function formatCurrency(n: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n);
 }
