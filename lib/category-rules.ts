@@ -4,20 +4,26 @@
  */
 
 const EXPENSE_KEYWORDS: Record<string, string[]> = {
-  Food: ["kopi", "makan", "food", "restaurant", "warung", "coffee", "lunch", "dinner", "snack"],
-  Transport: ["bensin", "transport", "grab", "gojek", "taxi", "parkir", "tol", "gas"],
-  Shopping: ["belanja", "shopping", "market", "mall"],
-  Bills: ["listrik", "internet", "pulsa", "bills", "tagihan"],
-  Health: ["obat", "dokter", "health", "apotek"],
-  Entertainment: ["nonton", "game", "entertainment", "hobi"],
+  Food: [
+    "kopi", "ngopi", "makan", "makanan", "food", "restaurant", "warung", "coffee", "lunch", "dinner", "snack",
+    "sarapan", "jajan", "kuliner", "gofood", "grabfood", "traveloka eats", "minuman", "cemilan",
+  ],
+  Transport: [
+    "bensin", "transport", "grab", "gojek", "ojek", "taxi", "parkir", "tol", "gas", "angkot",
+    "transjakarta", "krl", "tiket", "toll", "spbu", "go ride", "grab car",
+  ],
+  Shopping: ["belanja", "shopping", "market", "mall", "tokopedia", "shopee", "lazada", "toko"],
+  Bills: ["listrik", "internet", "pulsa", "bills", "tagihan", "pln", "wifi", "bpjs", "pdam", "netflix", "spotify"],
+  Health: ["obat", "dokter", "health", "apotek", "klinik", "rumah sakit", "medical", "vitamin"],
+  Entertainment: ["nonton", "game", "entertainment", "hobi", "bioskop", "streaming", "youtube", "premium", "langganan"],
   Other: [],
 };
 
 const INCOME_KEYWORDS: Record<string, string[]> = {
-  Salary: ["gaji", "salary", "gajian"],
-  Freelance: ["freelance", "project", "client"],
-  Investment: ["dividen", "investment", "saham"],
-  Gift: ["gift", "hadiah", "bonus"],
+  Salary: ["gaji", "salary", "gajian", "gaji bulanan", "payroll"],
+  Freelance: ["freelance", "project", "client", "side hustle", "proyek", "honor"],
+  Investment: ["dividen", "investment", "saham", "profit", "return", "capital gain"],
+  Gift: ["gift", "hadiah", "bonus", "thr", "angpao", "duit saku"],
   Other: [],
 };
 

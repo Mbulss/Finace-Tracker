@@ -1,15 +1,17 @@
 /**
  * Parse Telegram message lines like:
- * -25000 kopi
- * +500000 gaji
- * -150000 bensin
+ * -25000 kopi / -25rb kopi / -25k ngopi
+ * +500000 gaji / +500rb gaji / +0.5jt gajian
  */
 
 import { detectCategory } from "./category-rules";
 import type { TransactionInsert } from "./types";
 
-// Angka boleh pakai rb (ribu), jt (juta). Contoh: 25rb, 1jt, 500rb
-const LINE_REGEX = /^\s*([+-])\s*(\d[\d.,\s]*(?:rb|jt)?)\s*(.*)$/i;
+// Angka: rb, rbu, jt, juta, k (ribu). Contoh: 25rb, 1jt, 50k, 0.5 juta
+const LINE_REGEX = /^\s*([+-])\s*(\d[\d.,\s]*(?:rb[u]?|jt|juta|k)?)\s*(.*)$/i;
+// Suffix untuk parseAmount: rb, rbu, jt, juta, k
+const RB_PATTERN = /^([\d.,]+)\s*(?:rb[u]?|k)$/;
+const JT_PATTERN = /^([\d.,]+)\s*(?:jt|juta)$/;
 
 export interface ParsedLine {
   type: "income" | "expense";
@@ -20,12 +22,14 @@ export interface ParsedLine {
 
 export function parseAmount(raw: string): number {
   const s = raw.trim().toLowerCase().replace(/\s/g, "");
-  if (s.endsWith("jt")) {
-    const num = parseFloat(s.replace(/jt$/, "").replace(/,/g, "")) || 0;
+  const jutaMatch = s.match(JT_PATTERN);
+  if (jutaMatch) {
+    const num = parseFloat(jutaMatch[1].replace(/,/g, "")) || 0;
     return Math.abs(num) * 1_000_000;
   }
-  if (s.endsWith("rb")) {
-    const num = parseFloat(s.replace(/rb$/, "").replace(/,/g, "")) || 0;
+  const rbMatch = s.match(RB_PATTERN);
+  if (rbMatch) {
+    const num = parseFloat(rbMatch[1].replace(/,/g, "")) || 0;
     return Math.abs(num) * 1000;
   }
   const cleaned = raw.replace(/[.,\s]/g, "");
@@ -60,11 +64,11 @@ export function parseMessage(text: string): ParsedLine[] {
   return results;
 }
 
-/** Parse "25rb sarapan" atau "50000" — dipakai saat user sudah pilih kategori. Tanda + atau - di depan diabaikan (tipe dari pilihan). */
+/** Parse "25rb sarapan", "50k", "1jt jajan" — dipakai saat user sudah pilih kategori. Tanda + atau - di depan diabaikan. */
 export function parseAmountNote(line: string): { amount: number; note: string } | null {
-  const trimmed = line.trim().replace(/^[+-]\s*/, ""); // buang + atau - di depan
+  const trimmed = line.trim().replace(/^[+-]\s*/, "");
   if (!trimmed) return null;
-  const match = trimmed.match(/^\s*(\d[\d.,\s]*(?:rb|jt)?)\s*(.*)$/i);
+  const match = trimmed.match(/^\s*(\d[\d.,\s]*(?:rb[u]?|jt|juta|k)?)\s*(.*)$/i);
   if (!match) return null;
   const amount = parseAmount(match[1]);
   const note = (match[2] || "").trim();

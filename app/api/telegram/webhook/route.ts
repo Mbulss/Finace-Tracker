@@ -6,6 +6,7 @@ import { CATEGORIES } from "@/lib/types";
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_USER_ID = process.env.TELEGRAM_USER_ID; // opsional: fallback satu user kalau belum pakai link
 
+const DASHBOARD_URL = "https://finace-tracker-seven.vercel.app/";
 const BACK = "⬅️ Kembali";
 
 const expenseIcons: Record<string, string> = { Food: "🍜", Transport: "🚗", Shopping: "🛒", Bills: "💡", Health: "🏥", Entertainment: "🎬", Other: "📂" };
@@ -22,7 +23,7 @@ CATEGORIES.income.forEach((c) => {
 const MAIN_KEYBOARD = {
   keyboard: [
     [{ text: "📈 Pemasukan" }, { text: "📉 Pengeluaran" }],
-    [{ text: "📖 Cara pakai" }],
+    [{ text: "📖 Cara pakai" }, { text: "🖥 Dashboard" }],
   ],
   resize_keyboard: true,
   one_time_keyboard: false,
@@ -56,12 +57,12 @@ const AMOUNT_KEYBOARD = {
 
 const LINK_INSTRUCTIONS = `🔗 <b>Belum terhubung ke akun</b>
 
-Agar transaksi dari bot masuk ke akun kamu:
-1. Buka <b>web app</b> (dashboard), masuk login
-2. Di menu / halaman <b>Link Telegram</b>, klik "Buat kode"
-3. Kirim ke bot ini: <code>/link KODE</code> (ganti KODE dengan kode yang muncul)
+Biar transaksi dari sini masuk ke dashboard kamu:
+1. Buka dashboard → <a href="${DASHBOARD_URL}">${DASHBOARD_URL}</a>
+2. Login, lalu ke halaman <b>Link Telegram</b> → klik "Buat kode"
+3. Kirim ke aku: <code>/link KODE</code> (ganti KODE pake kode yang keluar)
 
-Kode berlaku 10 menit. Setelah terhubung, transaksi dari bot akan masuk ke dashboard kamu.`;
+Kode cuma berlaku 10 menit. Abis itu transaksi dari bot otomatis masuk ke dashboard.`;
 
 export async function POST(request: NextRequest) {
   if (!TELEGRAM_BOT_TOKEN) {
@@ -101,9 +102,9 @@ export async function POST(request: NextRequest) {
         { onConflict: "chat_id" }
       );
       await supabase.from("telegram_link_codes").delete().eq("code", code);
-      await sendMessageWithKeyboard(chatId, "✅ Akun terhubung! Transaksi dari bot akan masuk ke dashboard kamu.", MAIN_KEYBOARD);
+      await sendMessageWithKeyboard(chatId, "Oke akun kamu udah ke-link! 👍 Transaksi dari sini otomatis masuk ke dashboard.", MAIN_KEYBOARD);
     } else {
-      await sendTelegramReply(chatId, "❌ Kode tidak valid atau sudah kadaluarsa. Buat kode baru di web app → Link Telegram.");
+      await sendTelegramReply(chatId, "Kode gak valid atau udah kedaluwarsa 😅 Buat kode baru di web app → Link Telegram ya.");
     }
     return NextResponse.json({ ok: true });
   }
@@ -112,29 +113,65 @@ export async function POST(request: NextRequest) {
   const { data: link } = await supabase.from("telegram_links").select("user_id").eq("chat_id", chatId).single();
   const userId = link?.user_id ?? TELEGRAM_USER_ID ?? null;
 
-  // /start, /help, Cara pakai
-  if (text === "/start" || text.toLowerCase() === "/help" || text.includes("Cara pakai")) {
+  // Trigger bantuan: /start, /help, halo, hi, bantu, gimana, cara pakai, ?
+  const lower = text.toLowerCase();
+  const isHelp =
+    text === "/start" ||
+    lower === "/help" ||
+    lower === "help" ||
+    lower === "bantu" ||
+    lower === "gimana" ||
+    lower === "gmna" ||
+    lower === "gmn" ||
+    lower === "apa" ||
+    text === "?" ||
+    /^(halo|hi|hey|hei|oy|oi)\s*!?$/i.test(text) ||
+    text.includes("Cara pakai") ||
+    text.includes("cara pakai");
+  if (isHelp) {
     if (!userId) {
-      await sendMessageWithKeyboard(chatId, `👋 <b>Finance Tracker Bot</b>\n\n${LINK_INSTRUCTIONS}`, MAIN_KEYBOARD);
+      await sendMessageWithKeyboard(chatId, `👋 <b>Finance Tracker</b>\n\n${LINK_INSTRUCTIONS}`, MAIN_KEYBOARD);
     } else {
       await sendWelcomeWithMainMenu(chatId);
     }
     return NextResponse.json({ ok: true });
   }
 
+  // Selesai / dashboard / makasih → kasih link dashboard
+  const lowerTrim = lower.replace(/\s+/g, " ");
+  const isDone =
+    lowerTrim === "selesai" ||
+    lowerTrim === "done" ||
+    lowerTrim === "udah" ||
+    lowerTrim === "makasih" ||
+    lowerTrim === "thanks" ||
+    lowerTrim === "terima kasih" ||
+    text === "🖥 Dashboard" ||
+    lowerTrim === "dashboard" ||
+    lowerTrim === "link dashboard" ||
+    lowerTrim === "web";
+  if (isDone) {
+    await sendMessageWithKeyboard(
+      chatId,
+      `Oke, siap 👍\n\nKalau mau liat ringkasan, grafik, atau edit data → buka dashboard:\n<a href="${DASHBOARD_URL}">${DASHBOARD_URL}</a>\n\nKapan-kapan butuh catat lagi, tinggal balas di sini aja.`,
+      MAIN_KEYBOARD
+    );
+    return NextResponse.json({ ok: true });
+  }
+
   if (text === BACK) {
     await supabase.from("telegram_category_session").delete().eq("chat_id", chatId);
-    await sendMessageWithKeyboard(chatId, "Pilih Pemasukan atau Pengeluaran 👇", MAIN_KEYBOARD);
+    await sendMessageWithKeyboard(chatId, "Oke, mau catat pemasukan atau pengeluaran? 👇", MAIN_KEYBOARD);
     return NextResponse.json({ ok: true });
   }
 
   if (text === "📈 Pemasukan") {
-    await sendMessageWithKeyboard(chatId, "Pilih kategori pemasukan 👇", INCOME_CATEGORY_KEYBOARD);
+    await sendMessageWithKeyboard(chatId, "Pilih kategori pemasukan ya 👇", INCOME_CATEGORY_KEYBOARD);
     return NextResponse.json({ ok: true });
   }
 
   if (text === "📉 Pengeluaran") {
-    await sendMessageWithKeyboard(chatId, "Pilih kategori pengeluaran 👇", EXPENSE_CATEGORY_KEYBOARD);
+    await sendMessageWithKeyboard(chatId, "Pilih kategori pengeluaran ya 👇", EXPENSE_CATEGORY_KEYBOARD);
     return NextResponse.json({ ok: true });
   }
 
@@ -150,7 +187,7 @@ export async function POST(request: NextRequest) {
     );
     await sendMessageWithKeyboard(
       chatId,
-      `Kategori: <b>${selected.category}</b> (tipe sudah otomatis).\nKirim nominal + catatan saja, tanpa + atau -.\nContoh: <code>25000 sarapan</code> atau <code>500rb</code>\n\nTap "${BACK}" untuk batal.`,
+      `Oke, <b>${selected.category}</b> 👍\nSekarang kirim nominal + catatan aja (gak usah + atau -).\nContoh: <code>25k sarapan</code> / <code>500rb</code> / <code>1jt belanja</code>\n\nTap "${BACK}" kalo mau batal.`,
       AMOUNT_KEYBOARD
     );
     return NextResponse.json({ ok: true });
@@ -179,10 +216,11 @@ export async function POST(request: NextRequest) {
       const { error } = await supabase.from("transactions").insert(insert);
       await supabase.from("telegram_category_session").delete().eq("chat_id", chatId);
       if (error) {
-        await sendTelegramReply(chatId, "Gagal menyimpan: " + error.message);
+        await sendTelegramReply(chatId, "Waduh gagal nyimpen nih 😅 " + error.message);
         return NextResponse.json({ ok: true });
       }
-      await sendMessageWithKeyboard(chatId, `Tersimpan 💰 <b>${session.category}</b>: ${parsed.note || parsed.amount}\n\nTambah lagi? Pilih di bawah 👇`, MAIN_KEYBOARD);
+      const noteDisplay = parsed.note || session.category;
+      await sendMessageWithKeyboard(chatId, `Oke udah ke-catat 💰 <b>${session.category}</b>: ${noteDisplay}\nMau tambah lagi? Pilih di bawah 👇`, MAIN_KEYBOARD);
       return NextResponse.json({ ok: true });
     }
   }
@@ -196,7 +234,7 @@ export async function POST(request: NextRequest) {
     }
     await sendMessageWithKeyboard(
       chatId,
-      "Format tidak dikenali. Ketik <code>+50000 gaji</code> atau <code>-25rb kopi</code>\nAtau pilih Pemasukan/Pengeluaran di bawah 👇",
+      "Wah formatnya gak ke-detect nih 😅 Coba kayak gini:\n• <code>+50000 gaji</code> / <code>-25rb kopi</code>\n• Atau pilih tombol Pemasukan/Pengeluaran di bawah 👇",
       MAIN_KEYBOARD
     );
     return NextResponse.json({ ok: true });
@@ -210,11 +248,12 @@ export async function POST(request: NextRequest) {
   const inserts = parsed.map((p) => toTransactionInsert(p, userId));
   const { error } = await supabase.from("transactions").insert(inserts);
   if (error) {
-    await sendTelegramReply(chatId, "Gagal menyimpan: " + error.message);
+    await sendTelegramReply(chatId, "Waduh gagal nyimpen 😅 " + error.message);
     return NextResponse.json({ ok: true });
   }
 
-  await sendMessageWithKeyboard(chatId, `Transaksi tersimpan 💰 (${parsed.length} item)\n\nTambah lagi? Pilih di bawah 👇`, MAIN_KEYBOARD);
+  const itemWord = parsed.length === 1 ? "1 transaksi" : `${parsed.length} transaksi`;
+  await sendMessageWithKeyboard(chatId, `Mantap, ${itemWord} udah ke-catat 💰\nMau tambah lagi? 👇`, MAIN_KEYBOARD);
   return NextResponse.json({ ok: true });
 }
 
@@ -222,9 +261,15 @@ async function sendWelcomeWithMainMenu(chatId: number): Promise<void> {
   if (!TELEGRAM_BOT_TOKEN) return;
   const welcome = `👋 <b>Finance Tracker</b>
 
-Pilih <b>Pemasukan</b> atau <b>Pengeluaran</b>, lalu pilih kategori dan kirim nominal saja (tanpa + atau -, tipe otomatis).
+Ini bot buat catat pemasukan & pengeluaran kamu. Semua data masuk ke dashboard yang sama.
 
-Atau ketik langsung: <code>+500000 gaji</code> / <code>-25000 kopi</code>`;
+<b>Cara pakai (singkat):</b>
+• Pilih <b>Pemasukan</b> atau <b>Pengeluaran</b> → kategori → kirim nominal (boleh <code>25k</code>, <code>500rb</code>, <code>1jt</code>).
+• Atau ketik langsung: <code>+500rb gaji</code> / <code>-25k kopi</code>
+
+Kalau mau liat grafik & riwayat lengkap → dashboard:\n<a href="${DASHBOARD_URL}">${DASHBOARD_URL}</a>
+
+Siap catat? Pilih tombol di bawah 👇`;
   await sendMessageWithKeyboard(chatId, welcome, MAIN_KEYBOARD);
 }
 
