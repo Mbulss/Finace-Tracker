@@ -6,7 +6,7 @@ import { CATEGORIES } from "@/lib/types";
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_USER_ID = process.env.TELEGRAM_USER_ID; // opsional: fallback satu user kalau belum pakai link
 
-const DASHBOARD_URL = "https://finace-tracker-seven.vercel.app/";
+const DASHBOARD_URL = "https://finance-tracker-gamma-livid.vercel.app/";
 const BACK = "⬅️ Kembali";
 
 const expenseIcons: Record<string, string> = { Food: "🍜", Transport: "🚗", Shopping: "🛒", Bills: "💡", Health: "🏥", Entertainment: "🎬", Other: "📂" };

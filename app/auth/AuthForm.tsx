@@ -9,7 +9,7 @@ function getAuthRedirectUrl(): string {
   if (typeof window !== "undefined") return `${window.location.origin}/auth/callback`;
   return process.env.NEXT_PUBLIC_APP_URL
     ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
-    : "https://finace-tracker-seven.vercel.app/auth/callback";
+    : "https://finance-tracker-gamma-livid.vercel.app/auth/callback";
 }
 
 const CALLBACK_ERROR_MSG: Record<string, string> = {
