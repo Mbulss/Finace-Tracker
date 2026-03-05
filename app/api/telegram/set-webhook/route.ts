@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Set Telegram webhook ke URL deploy ini.
+ * Set Telegram webhook ke URL production.
  * Panggil sekali setelah deploy ke Vercel (atau saat ganti domain).
  *
  * GET atau POST: /api/telegram/set-webhook?secret=RAHASIA_ANDA
- * Env: TELEGRAM_BOT_TOKEN, TELEGRAM_SET_WEBHOOK_SECRET (opsional), VERCEL_URL (otomatis di Vercel)
+ * Env: TELEGRAM_BOT_TOKEN, TELEGRAM_SET_WEBHOOK_SECRET (opsional), NEXT_PUBLIC_APP_URL (wajib untuk production)
+ *
+ * Penting: Set NEXT_PUBLIC_APP_URL di Vercel ke domain production (mis. https://finance-tracker-gamma-livid.vercel.app)
+ * supaya webhook selalu mengarah ke URL yang stabil, bukan URL preview deployment.
  */
 export async function GET(request: NextRequest) {
   return setWebhook(request);
@@ -36,8 +39,11 @@ async function setWebhook(request: NextRequest) {
     }
   }
 
-  const baseUrl =
-    process.env.VERCEL_URL
+  // Utamakan domain production agar webhook tidak mengarah ke URL preview deployment
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  const baseUrl = appUrl
+    ? appUrl.startsWith("http") ? appUrl : `https://${appUrl}`
+    : process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : request.headers.get("host")
         ? `https://${request.headers.get("host")}`
@@ -45,7 +51,7 @@ async function setWebhook(request: NextRequest) {
 
   if (!baseUrl) {
     return NextResponse.json(
-      { ok: false, error: "Tidak bisa deteksi URL (VERCEL_URL atau Host)" },
+      { ok: false, error: "Set NEXT_PUBLIC_APP_URL di Vercel ke domain production (mis. https://finance-tracker-gamma-livid.vercel.app)" },
       { status: 500 }
     );
   }

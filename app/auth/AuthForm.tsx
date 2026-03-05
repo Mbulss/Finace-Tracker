@@ -99,7 +99,13 @@ export function AuthForm({
         router.refresh();
       }
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : "Terjadi kesalahan.");
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan.";
+      const isRateLimit = /rate limit|too many|terlalu banyak/i.test(msg);
+      setMessage(
+        isRateLimit
+          ? "Terlalu banyak permintaan kirim email. Tunggu 5–10 menit lalu coba lagi."
+          : msg
+      );
     } finally {
       setLoading(false);
     }
