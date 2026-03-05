@@ -18,6 +18,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Finance Tracker",
   description: "Personal finance tracker with web dashboard and Telegram",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

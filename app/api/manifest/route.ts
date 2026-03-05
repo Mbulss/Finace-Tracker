@@ -8,7 +8,7 @@ const MANIFEST = {
   display: "standalone",
   background_color: "#ffffff",
   theme_color: "#0ea5e9",
-  icons: [] as unknown[],
+  icons: [{ src: "/favicon.png", sizes: "any", type: "image/png", purpose: "any" }],
 };
 
 export function GET() {
