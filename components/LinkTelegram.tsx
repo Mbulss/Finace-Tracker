@@ -37,7 +37,7 @@ export function LinkTelegram() {
         Hubungkan akun Telegram ke dashboard ini. Transaksi yang kamu kirim lewat bot akan masuk ke akun kamu.
       </p>
 
-      {/* Section: Link otomatis */}
+      {/* Section: Link otomatis — satu tombol, klik langsung ke bot */}
       <section
         id="otomatis"
         className="rounded-2xl border-2 border-primary/20 dark:border-primary/30 bg-primary/5 dark:bg-primary/10 p-4 shadow-card sm:p-6"
@@ -46,48 +46,34 @@ export function LinkTelegram() {
           <span className="text-xl" aria-hidden>⚡</span>
           Link otomatis
         </h2>
-        <p className="mb-3 text-sm text-muted dark:text-slate-400">
-          Paling gampang: buka link lalu ketuk <strong>Start</strong> di Telegram. Akun langsung terhubung.
-        </p>
-        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          <strong>Catatan:</strong> Link otomatis hanya bisa dipakai di <strong>aplikasi Telegram</strong> (HP atau desktop). Tidak berfungsi di Telegram Web — pastikan kamu buka link dari app Telegram.
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          <strong>Catatan:</strong> Hanya bisa di <strong>aplikasi Telegram</strong> (HP/desktop), tidak di Telegram Web.
         </div>
-        {!code ? (
-          <>
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={loading}
-              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
-            >
-              {loading ? "Memuat..." : "Buat kode & dapat link"}
-            </button>
-            {error && <p className="mt-2 text-sm text-expense">{error}</p>}
-          </>
-        ) : (
-          <div className="space-y-3">
-            <a
-              href={`${TELEGRAM_BOT_URL}?start=${code}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-primary-hover dark:bg-sky-600 dark:hover:bg-sky-500"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-              </svg>
-              Buka bot & ketuk Start — akun langsung terhubung
-            </a>
-            <p className="text-xs text-muted dark:text-slate-500">Kode berlaku 10 menit.</p>
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={loading}
-              className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-            >
-              Buat kode baru
-            </button>
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={async () => {
+            setLoading(true);
+            setError("");
+            try {
+              const res = await fetch("/api/telegram/link-code", { method: "POST" });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || "Gagal");
+              window.open(`${TELEGRAM_BOT_URL}?start=${data.code}`, "_blank", "noopener,noreferrer");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Gagal");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-primary-hover disabled:opacity-50 dark:bg-sky-600 dark:hover:bg-sky-500"
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+          </svg>
+          {loading ? "Memuat..." : "Buka di Telegram"}
+        </button>
+        {error && <p className="mt-2 text-sm text-expense">{error}</p>}
       </section>
 
       {/* Section: Link manual */}
