@@ -7,5 +7,7 @@ type Props = { searchParams: Promise<{ [key: string]: string | string[] | undefi
 export default async function AuthPage({ searchParams }: Props) {
   const params = await searchParams;
   const error = typeof params?.error === "string" ? params.error : null;
-  return <AuthForm callbackError={error} />;
+  const confirmed = params?.confirmed === "1";
+  const passwordUpdated = params?.password_updated === "1";
+  return <AuthForm callbackError={error} confirmed={confirmed} passwordUpdated={passwordUpdated} />;
 }

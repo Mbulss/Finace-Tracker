@@ -29,7 +29,15 @@ function getHashError(): string | null {
   return params.get("error_description")?.replace(/\+/g, " ") ?? "Link tidak valid. Coba minta kirim ulang.";
 }
 
-export function AuthForm({ callbackError }: { callbackError?: string | null }) {
+export function AuthForm({
+  callbackError,
+  confirmed,
+  passwordUpdated,
+}: {
+  callbackError?: string | null;
+  confirmed?: boolean;
+  passwordUpdated?: boolean;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,7 +46,15 @@ export function AuthForm({ callbackError }: { callbackError?: string | null }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(callbackError ? CALLBACK_ERROR_MSG[callbackError] ?? "Terjadi kesalahan." : "");
+  const [message, setMessage] = useState(
+    passwordUpdated
+      ? "Password berhasil diubah. Silakan masuk dengan password baru."
+      : confirmed
+        ? "Email berhasil dikonfirmasi. Silakan masuk dengan email dan password yang kamu daftarkan."
+        : callbackError
+          ? CALLBACK_ERROR_MSG[callbackError] ?? "Terjadi kesalahan."
+          : ""
+  );
   const router = useRouter();
   const supabase = createClient();
 
@@ -205,7 +221,16 @@ export function AuthForm({ callbackError }: { callbackError?: string | null }) {
             </>
           )}
           {message && (
-            <p className={`text-sm ${message.includes("Cek email") || message.includes("spam") ? "text-income" : "text-expense"}`}>
+            <p
+              className={`text-sm ${
+                message.includes("Cek email") ||
+                  message.includes("spam") ||
+                  message.includes("berhasil dikonfirmasi") ||
+                  message.includes("berhasil diubah")
+                  ? "text-income"
+                  : "text-expense"
+              }`}
+            >
               {message}
             </p>
           )}

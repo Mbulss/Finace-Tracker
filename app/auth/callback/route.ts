@@ -3,15 +3,15 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * Supabase redirects here after email confirmation or password reset.
- * Exchange the code for a session and redirect to dashboard.
- * Agar tidak ke localhost, set di Supabase Dashboard → Auth → URL Configuration:
- * - Site URL: https://finance-tracker-gamma-livid.vercel.app
- * - Redirect URLs: https://finance-tracker-gamma-livid.vercel.app/**
+ * - Email confirmation: tukar code (supaya email terkonfirmasi), lalu sign out & redirect ke login.
+ *   User harus masuk lagi dengan password yang ia daftarkan.
+ * - Password reset (type=recovery): tukar code, redirect ke app (bisa ganti password di Profil).
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
+  const type = searchParams.get("type"); // "recovery" = reset password
 
   if (!code) {
     return NextResponse.redirect(new URL("/auth?error=missing_code", request.url));
@@ -25,5 +25,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth?error=invalid_code", request.url));
   }
 
-  return NextResponse.redirect(new URL(next, request.url));
+  if (type === "recovery") {
+    return NextResponse.redirect(new URL("/auth/update-password", request.url));
+  }
+
+  await supabase.auth.signOut();
+  return NextResponse.redirect(new URL("/auth?confirmed=1", request.url));
 }
