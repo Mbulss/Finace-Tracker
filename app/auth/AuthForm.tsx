@@ -123,11 +123,7 @@ export function AuthForm({
       </div>
       <div className="relative w-full max-w-md animate-fade-in-up rounded-2xl border border-border dark:border-slate-700 bg-card/95 dark:bg-slate-800/95 p-8 shadow-card backdrop-blur-sm">
         <div className="mb-6 flex items-center justify-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-white shadow-lg shadow-primary/25">
-            <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+          <img src="/logo.png" alt="" className="h-14 w-14 rounded-2xl object-contain" />
           <span className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Finance Tracker</span>
         </div>
         <p className="mb-6 text-center text-sm text-muted dark:text-slate-400">Kelola keuangan kamu dengan mudah</p>

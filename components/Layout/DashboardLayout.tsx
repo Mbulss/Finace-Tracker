@@ -26,6 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+          <img src="/logo.png" alt="" className="h-8 w-8 rounded-lg object-contain" />
           <span className="font-bold tracking-tight text-slate-800 dark:text-slate-100 truncate">Finance Tracker</span>
         </header>
         <div className="p-4 sm:p-6 lg:p-8 pb-[max(1rem,env(safe-area-inset-bottom))]">{children}</div>
