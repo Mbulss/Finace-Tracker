@@ -20,7 +20,7 @@ const FAQ_ITEMS = [
     id: "link-telegram",
     question: "Bagaimana cara menghubungkan akun dengan Telegram?",
     icon: "🔗",
-    answer: `Buka menu Link Telegram di sidebar → klik "Buat kode" → copy perintah yang muncul (contoh: /link ABC123). Buka bot @${TELEGRAM_BOT_USERNAME} di Telegram, kirim perintah itu. Bot akan konfirmasi "Akun terhubung!". Setelah itu, transaksi yang kamu input lewat bot akan masuk ke dashboard akun ini.`,
+    answer: `Buka menu Link Telegram di sidebar → klik "Buat kode" → lalu klik tombol "Buka bot & ketuk Start — akun langsung terhubung". Link itu akan membuka bot; cukup ketuk Start di Telegram, akun otomatis ke-link. Bisa juga kirim manual /link KODE ke bot. Setelah terhubung, transaksi dari bot masuk ke dashboard.`,
   },
   {
     id: "pakai-bot",

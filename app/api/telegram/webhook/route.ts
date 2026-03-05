@@ -58,11 +58,10 @@ const AMOUNT_KEYBOARD = {
 const LINK_INSTRUCTIONS = `🔗 <b>Belum terhubung ke akun</b>
 
 Biar transaksi dari sini masuk ke dashboard kamu:
-1. Buka dashboard → <a href="${DASHBOARD_URL}">${DASHBOARD_URL}</a>
-2. Login, lalu ke halaman <b>Link Telegram</b> → klik "Buat kode"
-3. Kirim ke aku: <code>/link KODE</code> (ganti KODE pake kode yang keluar)
+1. Buka <a href="${DASHBOARD_URL}">dashboard</a> → login → halaman <b>Link Telegram</b> → klik "Buat kode"
+2. Klik link yang keluar (atau kirim <code>/link KODE</code> ke aku), lalu ketuk <b>Start</b> — akun langsung ke-link.
 
-Kode cuma berlaku 10 menit. Abis itu transaksi dari bot otomatis masuk ke dashboard.`;
+Kode berlaku 10 menit.`;
 
 export async function POST(request: NextRequest) {
   if (!TELEGRAM_BOT_TOKEN) {
@@ -105,6 +104,29 @@ export async function POST(request: NextRequest) {
       await sendMessageWithKeyboard(chatId, "Oke akun kamu udah ke-link! 👍 Transaksi dari sini otomatis masuk ke dashboard.", MAIN_KEYBOARD);
     } else {
       await sendTelegramReply(chatId, "Kode gak valid atau udah kedaluwarsa 😅 Buat kode baru di web app → Link Telegram ya.");
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // /start KODE (dari deep link t.me/bot?start=KODE) → link otomatis, user cuma buka link & ketuk Start
+  const startMatch = text.match(/^\/start\s+(\S+)$/i);
+  if (startMatch) {
+    const code = startMatch[1].trim().toUpperCase();
+    const { data: row } = await supabase
+      .from("telegram_link_codes")
+      .select("user_id")
+      .eq("code", code)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+    if (row) {
+      await supabase.from("telegram_links").upsert(
+        { chat_id: chatId, user_id: row.user_id, created_at: new Date().toISOString() },
+        { onConflict: "chat_id" }
+      );
+      await supabase.from("telegram_link_codes").delete().eq("code", code);
+      await sendMessageWithKeyboard(chatId, "Oke akun kamu udah ke-link! 👍 Transaksi dari sini otomatis masuk ke dashboard.", MAIN_KEYBOARD);
+    } else {
+      await sendTelegramReply(chatId, "Kode gak valid atau udah kedaluwarsa 😅 Buat kode baru di web → Link Telegram ya.");
     }
     return NextResponse.json({ ok: true });
   }
