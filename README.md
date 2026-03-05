@@ -24,7 +24,8 @@ npm install
 1. Create a project at [supabase.com](https://supabase.com).
 2. In the SQL Editor, run the contents of `supabase/schema.sql` (includes table for Telegram category buttons).
 3. (Optional) Enable Realtime for `public.transactions` if you want live updates: Database → Replication → enable for `transactions`.
-4. Copy **Project URL** and **anon key** from Settings → API. For the webhook, also copy **service_role** key (keep it secret).
+4. **Redirect URL (konfirmasi email & reset password):** Supabase Dashboard → Authentication → URL Configuration. Set **Site URL** ke URL production (e.g. `https://finace-tracker-seven.vercel.app`). Di **Redirect URLs** tambahkan `https://finace-tracker-seven.vercel.app/**` dan `http://localhost:3000/**` agar link konfirmasi email / reset password mengarah ke app kamu, bukan localhost.
+5. Copy **Project URL** and **anon key** from Settings → API. For the webhook, also copy **service_role** key (keep it secret).
 
 ### 3. Environment variables
 

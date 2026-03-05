@@ -5,12 +5,25 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-export function AuthForm() {
+function getAuthRedirectUrl(): string {
+  if (typeof window !== "undefined") return `${window.location.origin}/auth/callback`;
+  return process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    : "https://finace-tracker-seven.vercel.app/auth/callback";
+}
+
+const CALLBACK_ERROR_MSG: Record<string, string> = {
+  missing_code: "Link tidak lengkap. Coba klik lagi dari email atau minta kirim ulang.",
+  invalid_code: "Link kedaluwarsa atau sudah dipakai. Coba daftar ulang atau minta link reset password lagi.",
+};
+
+export function AuthForm({ callbackError }: { callbackError?: string | null }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(callbackError ? CALLBACK_ERROR_MSG[callbackError] ?? "Terjadi kesalahan." : "");
   const router = useRouter();
   const supabase = createClient();
 
@@ -18,11 +31,18 @@ export function AuthForm() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    const redirectTo = getAuthRedirectUrl();
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
         if (error) throw error;
-        setMessage("Cek email kamu untuk konfirmasi pendaftaran.");
+        setMessage("Cek email kamu untuk link reset password. Kalau belum muncul, cek folder spam.");
+        setEmail("");
+        setIsForgotPassword(false);
+      } else if (isSignUp) {
+        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
+        if (error) throw error;
+        setMessage("Cek email kamu untuk konfirmasi pendaftaran. Link akan mengarah ke dashboard.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -71,21 +91,32 @@ export function AuthForm() {
               placeholder="kamu@example.com"
             />
           </div>
-          <div>
-            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 px-4 py-3 text-sm placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
+          {!isForgotPassword && (
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => { setIsForgotPassword(true); setMessage(""); }}
+                  className="text-xs text-primary hover:underline dark:text-sky-400"
+                >
+                  Lupa password?
+                </button>
+              </div>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 px-4 py-3 text-sm placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          )}
           {message && (
-            <p className={`text-sm ${message.includes("Cek email") ? "text-income" : "text-expense"}`}>
+            <p className={`text-sm ${message.includes("Cek email") || message.includes("spam") ? "text-income" : "text-expense"}`}>
               {message}
             </p>
           )}
@@ -94,16 +125,32 @@ export function AuthForm() {
             disabled={loading}
             className="w-full rounded-xl bg-primary py-3.5 font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover hover:shadow-primary/30 disabled:opacity-50 active:scale-[0.98]"
           >
-            {loading ? "Memproses..." : isSignUp ? "Daftar" : "Masuk"}
+            {loading
+              ? "Memproses..."
+              : isForgotPassword
+                ? "Kirim link reset"
+                : isSignUp
+                  ? "Daftar"
+                  : "Masuk"}
           </button>
         </form>
-        <button
-          type="button"
-          onClick={() => { setIsSignUp((v) => !v); setMessage(""); }}
-          className="mt-4 w-full text-sm text-muted transition hover:text-slate-700 dark:hover:text-slate-300 dark:text-slate-400"
-        >
-          {isSignUp ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar"}
-        </button>
+        {isForgotPassword ? (
+          <button
+            type="button"
+            onClick={() => { setIsForgotPassword(false); setMessage(""); }}
+            className="mt-4 w-full text-sm text-muted transition hover:text-slate-700 dark:hover:text-slate-300 dark:text-slate-400"
+          >
+            ← Kembali ke masuk
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setIsSignUp((v) => !v); setMessage(""); }}
+            className="mt-4 w-full text-sm text-muted transition hover:text-slate-700 dark:hover:text-slate-300 dark:text-slate-400"
+          >
+            {isSignUp ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar"}
+          </button>
+        )}
       </div>
     </div>
   );
