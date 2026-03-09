@@ -44,28 +44,29 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         `}
       >
         <div className="flex h-full flex-col p-4 pl-[max(1rem,env(safe-area-inset-left))]">
-          <div className="flex items-center justify-between px-2 py-4 lg:justify-start lg:gap-3">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain" />
-              <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">Finance Tracker</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <ThemeToggle />
-              {onClose && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200 lg:hidden"
-                  aria-label="Tutup menu"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
+          {/* Desktop: logo + nama app */}
+          <div className="hidden lg:flex items-center gap-3 px-2 py-4">
+            <img src="/logo.png" alt="" className="h-10 w-10 shrink-0 rounded-xl object-contain" />
+            <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">Finance Tracker</span>
+            <div className="ml-auto"><ThemeToggle /></div>
           </div>
-          <nav className="flex-1 space-y-0.5 pt-6">
+          {/* Mobile: close button saja (logo di navbar, theme toggle di navbar kanan) */}
+          <div className="flex items-center justify-between px-2 py-3 lg:hidden">
+            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Menu</span>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                aria-label="Tutup menu"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <nav className="flex-1 space-y-0.5 pt-0.5 lg:pt-6">
             <Link
               href="/"
               onClick={onClose}

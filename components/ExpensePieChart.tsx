@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import type { Transaction } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
@@ -8,21 +9,24 @@ interface ExpensePieChartProps {
   transactions: Transaction[];
 }
 
-// Palet beda-beda per kategori: biru, hijau, oranye, merah, ungu, teal, amber
 const COLORS = [
-  "#0ea5e9", // sky
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#14b8a6", // teal
-  "#ec4899", // pink
-  "#f97316", // orange
-  "#6366f1", // indigo
-  "#84cc16", // lime
+  "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
+  "#14b8a6", "#ec4899", "#f97316", "#6366f1", "#84cc16",
 ];
 
+function useIsMobile(breakpoint = 640) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return mobile;
+}
+
 export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
+  const isMobile = useIsMobile();
   const expenseOnly = transactions.filter((t) => t.type === "expense");
   const byCategory = expenseOnly.reduce<Record<string, number>>((acc, t) => {
     acc[t.category] = (acc[t.category] ?? 0) + Number(t.amount);
@@ -46,6 +50,12 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
     );
   }
 
+  const renderLabel = ({ name, percent }: { name: string; percent: number }) => {
+    const pct = `${(percent * 100).toFixed(0)}%`;
+    if (isMobile) return pct;
+    return `${name} ${pct}`;
+  };
+
   return (
     <div className="h-[260px] sm:h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
@@ -53,13 +63,14 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
           <Pie
             data={data}
             cx="50%"
-            cy="48%"
-            innerRadius="45%"
-            outerRadius="75%"
+            cy={isMobile ? "45%" : "48%"}
+            innerRadius={isMobile ? "38%" : "45%"}
+            outerRadius={isMobile ? "62%" : "75%"}
             paddingAngle={2}
             dataKey="value"
             nameKey="name"
-            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            label={renderLabel}
+            fontSize={isMobile ? 11 : 13}
           >
             {data.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="transparent" />
@@ -69,7 +80,9 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
           <Legend
             verticalAlign="bottom"
             align="center"
-            wrapperStyle={{ paddingTop: 8, display: "flex", justifyContent: "center", flexWrap: "wrap" }}
+            wrapperStyle={{ paddingTop: 4, display: "flex", justifyContent: "center", flexWrap: "wrap" }}
+            iconSize={isMobile ? 10 : 14}
+            formatter={(value: string) => <span className="text-xs sm:text-sm">{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>
