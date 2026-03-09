@@ -41,6 +41,22 @@ Kode berlaku 10 menit. Kalau bingung, buka halaman Link Telegram — kedua cara 
     answer: "Buka menu Akun di sidebar (di atas Keluar). Di section \"Ubah Password\", isi password lama (untuk konfirmasi), password baru, dan konfirmasi password baru, lalu klik \"Ubah password\". Notifikasi hijau akan muncul jika berhasil. Kalau lupa password lama, pakai \"Lupa password?\" di halaman login untuk dapat link reset lewat email.",
   },
   {
+    id: "tambah-foto",
+    question: "Bagaimana cara tambah transaksi dari foto?",
+    icon: "📷",
+    answer: `Di halaman Dashboard, buka bagian "Tambah dari foto dengan AI" (di bawah form transaksi manual). Lalu:
+
+1. Seret foto struk/bukti transfer ke area upload, atau ketuk area tersebut untuk memilih foto dari galeri.
+2. AI akan otomatis membaca foto: mendeteksi nominal, kategori, dan nama toko/item.
+3. Hasil bacaan AI langsung mengisi form transaksi. Cek sebentar apakah sudah benar, lalu klik "Simpan".
+
+Tips agar hasil lebih akurat:
+• Foto harus jelas dan tidak miring — pastikan angka total dan nama toko terbaca.
+• Struk thermal (kertas panjang kasir) dan bukti transfer bank (BCA, Mandiri, dll) didukung.
+• Jika nama toko tidak terdeteksi, AI akan mengambil nama item pesanan terbesar sebagai catatan.
+• Hasil AI tidak selalu 100% akurat — selalu cek nominal dan catatan sebelum menyimpan.`,
+  },
+  {
     id: "export",
     question: "Bisakah export data transaksi?",
     icon: "📥",

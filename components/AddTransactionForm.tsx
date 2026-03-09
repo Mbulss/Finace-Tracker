@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ToastContext";
 import type { TransactionType } from "@/lib/types";
 import { CATEGORIES } from "@/lib/types";
 import { formatAmountDisplay, parseAmountInput } from "@/lib/utils";
 
+export type PrefillFromPhoto = {
+  type: TransactionType;
+  amount: number;
+  category: string;
+  note: string;
+};
+
 interface AddTransactionFormProps {
   userId: string;
   onSuccess: () => void;
   onOptimisticAdd?: (t: { id: string; user_id: string; type: "income" | "expense"; amount: number; category: string; note: string; created_at: string }) => void;
   onOptimisticFail?: (tempId: string) => void;
+  prefill?: PrefillFromPhoto | null;
+  onPrefillApplied?: () => void;
 }
 
-export function AddTransactionForm({ userId, onSuccess, onOptimisticAdd, onOptimisticFail }: AddTransactionFormProps) {
+export function AddTransactionForm({ userId, onSuccess, onOptimisticAdd, onOptimisticFail, prefill, onPrefillApplied }: AddTransactionFormProps) {
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES.expense[0]);
@@ -25,6 +34,15 @@ export function AddTransactionForm({ userId, onSuccess, onOptimisticAdd, onOptim
   const { showToast } = useToast();
 
   const categories = type === "income" ? CATEGORIES.income : CATEGORIES.expense;
+
+  useEffect(() => {
+    if (!prefill) return;
+    setType(prefill.type);
+    setAmount(formatAmountDisplay(String(prefill.amount)));
+    setCategory(prefill.category);
+    setNote(prefill.note);
+    onPrefillApplied?.();
+  }, [prefill, onPrefillApplied]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

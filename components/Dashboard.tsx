@@ -6,7 +6,8 @@ import type { Transaction } from "@/lib/types";
 import { getMonthKey } from "@/lib/utils";
 import { exportTransactionsToCSV } from "@/lib/export-csv";
 import { SummaryCards } from "./SummaryCards";
-import { AddTransactionForm } from "./AddTransactionForm";
+import { AddTransactionForm, type PrefillFromPhoto } from "./AddTransactionForm";
+import { AddFromPhoto } from "./AddFromPhoto";
 import { TransactionTable } from "./TransactionTable";
 import { ExpensePieChart } from "./ExpensePieChart";
 import { MonthlyBarChart } from "./MonthlyBarChart";
@@ -29,6 +30,7 @@ export function Dashboard({ userId }: DashboardProps) {
   const [liveUpdated, setLiveUpdated] = useState(false);
   const [optimisticTransactions, setOptimisticTransactions] = useState<Transaction[]>([]);
   const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
+  const [prefillFromPhoto, setPrefillFromPhoto] = useState<PrefillFromPhoto | null>(null);
   const liveUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
   const { showToast } = useToast();
@@ -244,15 +246,20 @@ export function Dashboard({ userId }: DashboardProps) {
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
           <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Tambah Transaksi</h2>
-          <AddTransactionForm
-          userId={userId}
-          onSuccess={fetchTransactions}
-          onOptimisticAdd={(t) => setOptimisticTransactions((prev) => [...prev, t])}
-          onOptimisticFail={(tempId) => {
-            setOptimisticTransactions((prev) => prev.filter((x) => x.id !== tempId));
-            showToast("Gagal menyimpan transaksi", "error");
-          }}
-        />
+          <AddFromPhoto onParsed={setPrefillFromPhoto} />
+          <div className="mt-4">
+            <AddTransactionForm
+              userId={userId}
+              onSuccess={fetchTransactions}
+              onOptimisticAdd={(t) => setOptimisticTransactions((prev) => [...prev, t])}
+              onOptimisticFail={(tempId) => {
+                setOptimisticTransactions((prev) => prev.filter((x) => x.id !== tempId));
+                showToast("Gagal menyimpan transaksi", "error");
+              }}
+              prefill={prefillFromPhoto}
+              onPrefillApplied={() => setPrefillFromPhoto(null)}
+            />
+          </div>
         </section>
         <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
           <h2 className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Pengeluaran per Kategori</h2>
