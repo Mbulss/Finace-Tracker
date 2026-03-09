@@ -112,12 +112,27 @@ export function Dashboard({ userId }: DashboardProps) {
     id: string,
     data: { type: "income" | "expense"; amount: number; category: string; note: string }
   ) => {
-    await supabase
+    const { data: updatedRows, error } = await supabase
       .from("transactions")
-      .update({ type: data.type, amount: data.amount, category: data.category, note: data.note })
+      .update({
+        type: data.type,
+        amount: Number(data.amount),
+        category: data.category,
+        note: data.note ?? "",
+      })
       .eq("id", id)
-      .eq("user_id", userId);
-    fetchTransactions();
+      .eq("user_id", userId)
+      .select("id");
+    if (error) {
+      showToast(error.message ?? "Gagal menyimpan perubahan transaksi", "error");
+      throw error;
+    }
+    if (!updatedRows?.length) {
+      showToast("Transaksi tidak ditemukan atau tidak bisa diubah.", "error");
+      throw new Error("No rows updated");
+    }
+    await fetchTransactions();
+    showToast("Transaksi diperbarui");
   };
 
   const handleExportCSV = () => {

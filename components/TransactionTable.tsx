@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Transaction } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { EditTransactionModal } from "./EditTransactionModal";
@@ -15,6 +15,8 @@ interface TransactionTableProps {
   onEdit: (id: string, data: { type: "income" | "expense"; amount: number; category: string; note: string }) => void;
 }
 
+const PAGE_SIZE = 15;
+
 type TypeFilter = "all" | "income" | "expense";
 
 export function TransactionTable({ transactions, onDelete, onEdit }: TransactionTableProps) {
@@ -24,6 +26,7 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [page, setPage] = useState(1);
   const { showToast } = useToast();
 
   const categories = Array.from(new Set(transactions.map((t) => t.category))).sort();
@@ -40,6 +43,18 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
     return matchSearch && matchCategory && matchType;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  useEffect(() => {
+    if (page > totalPages && totalPages >= 1) setPage(1);
+  }, [totalPages, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryFilter, typeFilter]);
+
   if (transactions.length === 0) {
     return (
       <EmptyState
@@ -55,7 +70,11 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
       <div className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-sm text-muted dark:text-slate-400">
-            Menampilkan <span className="font-medium text-slate-700 dark:text-slate-300">{filtered.length}</span> transaksi
+            Menampilkan{" "}
+            <span className="font-medium text-slate-700 dark:text-slate-300">
+              {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)}
+            </span>{" "}
+            dari <span className="font-medium text-slate-700 dark:text-slate-300">{filtered.length}</span> transaksi
           </span>
           <div className="flex rounded-xl bg-slate-100 dark:bg-slate-700 p-1 w-full sm:w-auto">
             {(["all", "income", "expense"] as const).map((type) => (
@@ -109,7 +128,7 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
             </tr>
           </thead>
           <tbody>
-            {filtered.map((t) => (
+            {paginated.map((t) => (
               <tr key={t.id} className="border-b border-border dark:border-slate-600 last:border-0 transition hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
                 <td className="whitespace-nowrap px-3 py-3 text-slate-700 dark:text-slate-300 sm:px-4 sm:py-3.5">{formatDate(t.created_at)}</td>
                 <td className="px-3 py-3 sm:px-4 sm:py-3.5">
@@ -156,13 +175,38 @@ export function TransactionTable({ transactions, onDelete, onEdit }: Transaction
           </tbody>
         </table>
       </div>
+      {totalPages > 1 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border dark:border-slate-600 pt-4">
+          <p className="text-sm text-muted dark:text-slate-400">
+            Halaman {safePage} dari {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="min-h-[44px] rounded-xl border border-border dark:border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:pointer-events-none transition"
+            >
+              Sebelumnya
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+              className="min-h-[44px] rounded-xl border border-border dark:border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:pointer-events-none transition"
+            >
+              Selanjutnya
+            </button>
+          </div>
+        </div>
+      )}
       {filtered.length === 0 && (search || categoryFilter !== "all" || typeFilter !== "all") && (
         <p className="mt-3 text-center text-sm text-muted dark:text-slate-400">Tidak ada transaksi yang cocok dengan filter.</p>
       )}
       <EditTransactionModal
         transaction={editing}
         onClose={() => setEditing(null)}
-        onSave={(id, data) => { onEdit(id, data); setEditing(null); }}
+        onSave={async (id, data) => { await onEdit(id, data); }}
       />
       <DeleteConfirmModal
         transaction={deleting}

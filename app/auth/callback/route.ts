@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
  * Supabase redirects here after email confirmation or password reset.
  * - Email confirmation: tukar code (supaya email terkonfirmasi), lalu sign out & redirect ke login.
  *   User harus masuk lagi dengan password yang ia daftarkan.
- * - Password reset (type=recovery): tukar code, redirect ke app (bisa ganti password di Profil).
+ * - Password reset (type=recovery): tukar code, redirect ke app (bisa ganti password di Akun).
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

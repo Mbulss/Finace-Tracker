@@ -38,7 +38,7 @@ Kode berlaku 10 menit. Kalau bingung, buka halaman Link Telegram — kedua cara 
     id: "ubah-password",
     question: "Bagaimana cara ubah password?",
     icon: "🔒",
-    answer: "Buka menu Profil di sidebar (di atas Keluar). Di section \"Ubah Password\", isi password lama (untuk konfirmasi), password baru, dan konfirmasi password baru, lalu klik \"Ubah password\". Notifikasi hijau akan muncul jika berhasil. Kalau lupa password lama, pakai \"Lupa password?\" di halaman login untuk dapat link reset lewat email.",
+    answer: "Buka menu Akun di sidebar (di atas Keluar). Di section \"Ubah Password\", isi password lama (untuk konfirmasi), password baru, dan konfirmasi password baru, lalu klik \"Ubah password\". Notifikasi hijau akan muncul jika berhasil. Kalau lupa password lama, pakai \"Lupa password?\" di halaman login untuk dapat link reset lewat email.",
   },
   {
     id: "export",
