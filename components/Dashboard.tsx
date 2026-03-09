@@ -261,10 +261,14 @@ export function Dashboard({ userId }: DashboardProps) {
             />
           </div>
         </section>
-        <section className="rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
+        <section className="flex flex-col rounded-2xl border border-border dark:border-slate-700 bg-card dark:bg-slate-800 p-4 sm:p-6 shadow-card transition-shadow hover:shadow-card-hover dark:hover:shadow-card-hover animate-fade-in-up" style={{ animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
           <h2 className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">Pengeluaran per Kategori</h2>
           <p className="mb-4 text-sm text-muted dark:text-slate-400">{periodLabel}</p>
-          <ExpensePieChart transactions={filteredByMonth} />
+          <div className="flex flex-1 items-center justify-center">
+            <div className="w-full">
+              <ExpensePieChart transactions={filteredByMonth} />
+            </div>
+          </div>
         </section>
       </div>
 

@@ -130,7 +130,6 @@ export function AddFromPhoto({ onParsed }: AddFromPhotoProps) {
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleFileFromInput}
         className="hidden"
         aria-hidden

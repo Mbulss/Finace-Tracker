@@ -47,15 +47,15 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
   }
 
   return (
-    <div className="h-[240px] min-h-[200px] sm:h-[260px]">
+    <div className="h-[260px] sm:h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
             cx="50%"
-            cy="50%"
+            cy="48%"
             innerRadius="45%"
-            outerRadius="70%"
+            outerRadius="75%"
             paddingAngle={2}
             dataKey="value"
             nameKey="name"
@@ -66,7 +66,11 @@ export function ExpensePieChart({ transactions }: ExpensePieChartProps) {
             ))}
           </Pie>
           <Tooltip formatter={(value: number) => formatCurrency(value)} />
-          <Legend />
+          <Legend
+            verticalAlign="bottom"
+            align="center"
+            wrapperStyle={{ paddingTop: 8, display: "flex", justifyContent: "center", flexWrap: "wrap" }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
