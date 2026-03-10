@@ -71,10 +71,11 @@ function renderMarkdown(text: string) {
 export function ChatBot({ onTransactionAdded }: { onTransactionAdded?: () => void }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "assistant", content: "Yo! Aku Cike, asisten keuanganmu 👋\nMau cek keuangan, tambahin transaksi, atau butuh tips? Gas langsung aja ketik!" },
+    { id: "welcome", role: "assistant", content: "Yo! Aku Cike AI, asisten keuanganmu 👋\nMau cek keuangan, tambahin transaksi, atau butuh tips? Gas langsung aja ketik!" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mobileViewport, setMobileViewport] = useState<{ height: number; top: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,8 +89,34 @@ export function ChatBot({ onTransactionAdded }: { onTransactionAdded?: () => voi
     if (open) {
       scrollToBottom();
       setTimeout(() => inputRef.current?.focus(), 200);
+    } else {
+      setMobileViewport(null);
     }
   }, [open, scrollToBottom]);
+
+  // Mobile: sesuaikan panel dengan visual viewport agar tidak ada gap saat keyboard terbuka
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!open || !vv) return;
+    const isMobile = () => window.innerWidth < 640;
+    const update = () => {
+      if (!isMobile()) {
+        setMobileViewport(null);
+        return;
+      }
+      const viewport = window.visualViewport;
+      if (viewport) setMobileViewport({ height: viewport.height, top: viewport.offsetTop });
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [open]);
 
   useEffect(() => {
     scrollToBottom();
@@ -141,7 +168,7 @@ export function ChatBot({ onTransactionAdded }: { onTransactionAdded?: () => voi
           sm:bottom-6 sm:right-6
           ${open ? "rotate-0 bg-slate-600 dark:bg-slate-500" : ""}
         `}
-        aria-label={open ? "Tutup chatbot" : "Buka chatbot"}
+        aria-label={open ? "Tutup chatbot" : "Buka Cike AI"}
       >
         {open ? (
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -161,22 +188,31 @@ export function ChatBot({ onTransactionAdded }: { onTransactionAdded?: () => voi
             fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border
             bg-card dark:bg-slate-800 dark:border-slate-700 shadow-2xl
             transition-all duration-200 animate-chat-in
-            /* Mobile: almost full screen */
-            bottom-0 left-0 right-0 top-14
+            /* Mobile: ukuran/posisi pakai style dari visualViewport (supaya rapat dengan keyboard) */
+            left-0 right-0
+            /* Default mobile fallback */
+            bottom-0 top-14
             /* Desktop: popup */
             sm:bottom-24 sm:right-6 sm:left-auto sm:top-auto sm:h-[520px] sm:w-[400px]
             sm:rounded-2xl
           `}
+          style={
+            mobileViewport
+              ? {
+                  top: mobileViewport.top,
+                  height: mobileViewport.height,
+                  bottom: "auto",
+                }
+              : undefined
+          }
         >
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-border dark:border-slate-700 bg-primary/5 dark:bg-primary/10 px-4 py-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary dark:text-sky-400">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-              </svg>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white dark:bg-slate-200 ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm">
+              <img src="/cike-ai.png" alt="" className="h-full w-full object-contain p-0.5" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Cike - Asisten Keuangan</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Cike AI</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Tanya apa aja soal keuanganmu</p>
             </div>
             <button
