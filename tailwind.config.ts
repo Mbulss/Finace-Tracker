@@ -41,6 +41,11 @@ const config: Config = {
         "toast-in": "toastIn 0.35s ease-out forwards",
         "count-up": "countUp 0.6s ease-out forwards",
         "chat-in": "chatIn 0.2s ease-out forwards",
+        "float": "float 4s ease-in-out infinite",
+        "shimmer": "shimmer 2.5s linear infinite",
+        "pulse-subtle": "pulseSubtle 2s ease-in-out infinite",
+        "typing": "typing 3.5s steps(40, end) forwards",
+        "blink": "blink 0.7s step-end infinite",
       },
       keyframes: {
         fadeIn: {
@@ -66,6 +71,26 @@ const config: Config = {
         chatIn: {
           "0%": { opacity: "0", transform: "scale(0.95) translateY(8px)" },
           "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-15px)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200px 0" },
+          "100%": { backgroundPosition: "200px 0" },
+        },
+        pulseSubtle: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.6", transform: "scale(1.05)" },
+        },
+        typing: {
+          "from": { width: "0" },
+          "to": { width: "100%" },
+        },
+        blink: {
+          "from, to": { borderColor: "transparent" },
+          "50%": { borderColor: "currentColor" },
         },
       },
     },

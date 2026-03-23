@@ -8,6 +8,11 @@ export function LinkTelegram() {
   const [code, setCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function handleGenerate() {
     setLoading(true);
@@ -25,138 +30,210 @@ export function LinkTelegram() {
     }
   }
 
-  // Scroll ke section otomatis kalau URL pakai hash #otomatis (dari sidebar)
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#otomatis") {
       document.getElementById("otomatis")?.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
 
+  if (!mounted) return null;
+
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-border dark:border-slate-600 bg-slate-50/80 dark:bg-slate-800/50 px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
-        <p className="font-medium text-slate-800 dark:text-slate-100 mb-2">Kenapa link Telegram?</p>
-        <ul className="list-disc list-inside space-y-1 text-muted dark:text-slate-400">
-          <li>Catat transaksi dari HP lewat bot — tanpa buka browser</li>
-          <li>Format cepat: <span className="font-mono text-primary">+50rb gaji</span> atau <span className="font-mono text-primary">-25rb kopi</span></li>
-          <li>Setor/tarik tabungan, cek saldo, dan dapat ringkasan mingguan lewat chat</li>
-        </ul>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Card kiri: Link otomatis */}
-        <section
-          id="otomatis"
-          className="flex flex-col rounded-2xl border-2 border-primary/20 dark:border-primary/30 bg-primary/5 dark:bg-primary/10 p-4 shadow-card sm:p-6"
-        >
-        <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">
-          <span className="text-xl" aria-hidden>⚡</span>
-          Link otomatis
-        </h2>
-        <p className="mb-3 text-sm text-muted dark:text-slate-400">
-          Paling cepat: satu tombol, bot terbuka, ketuk Start — akun langsung terhubung.
-        </p>
-        <ul className="mb-4 space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
-          <li className="flex items-center gap-2"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">1</span> Klik tombol di bawah</li>
-          <li className="flex items-center gap-2"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">2</span> Aplikasi Telegram terbuka</li>
-          <li className="flex items-center gap-2"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">3</span> Ketuk <strong>Start</strong> — selesai</li>
-        </ul>
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          <strong>Catatan:</strong> Hanya bisa di <strong>aplikasi Telegram</strong> (HP/desktop), tidak di Telegram Web.
-        </div>
-        <div className="flex flex-1 items-end justify-center">
-          <button
-            type="button"
-            onClick={async () => {
-              setLoading(true);
-              setError("");
-              try {
-                const res = await fetch("/api/telegram/link-code", { method: "POST" });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Gagal");
-                openTelegramUrl(`${TELEGRAM_BOT_URL}?start=${data.code}`);
-              } catch (e) {
-                setError(e instanceof Error ? e.message : "Gagal");
-              } finally {
-                setLoading(false);
-              }
-            }}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-primary-hover disabled:opacity-50 dark:bg-sky-600 dark:hover:bg-sky-500"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-            </svg>
-            {loading ? "Memuat..." : "Buka di Telegram"}
-          </button>
-        </div>
-        {error && <p className="mt-2 text-center text-sm text-expense">{error}</p>}
-        </section>
-
-        {/* Card kanan: Link manual */}
-        <section
-          id="link-manual"
-          className="flex flex-col rounded-2xl border-2 border-border dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50 p-4 shadow-card sm:p-6"
-        >
-        <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-100 sm:text-lg">
-          <span className="text-xl" aria-hidden>✏️</span>
-          Link manual
-        </h2>
-        <p className="mb-3 text-sm text-muted dark:text-slate-400">
-          Untuk Telegram Web atau kalau link otomatis tidak jalan: buat kode lalu kirim ke bot @{TELEGRAM_BOT_USERNAME}.
-        </p>
-        <ul className="mb-4 space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
-          <li className="flex items-center gap-2"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-300 dark:bg-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200">1</span> Klik &quot;Buat kode&quot;</li>
-          <li className="flex items-center gap-2"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-300 dark:bg-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200">2</span> Buka bot di Telegram (Web atau app)</li>
-          <li className="flex items-center gap-2"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-300 dark:bg-slate-600 text-xs font-semibold text-slate-700 dark:text-slate-200">3</span> Kirim <strong>/link KODE</strong> (ganti KODE dengan kode yang muncul)</li>
-        </ul>
-        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-100/80 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
-          <strong>Catatan:</strong> Bisa dipakai di <strong>Telegram Web</strong> dan aplikasi. Cocok kalau kamu pakai browser.
-        </div>
-        {!code ? (
-          <>
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={loading}
-                className="rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 disabled:opacity-50"
-              >
-                {loading ? "Memuat..." : "Buat kode"}
-              </button>
+    <div className="max-w-6xl mx-auto space-y-10 sm:space-y-14 pb-20 px-4 sm:px-6">
+      {/* --- HERO SECTION --- (Standardized Gmail Style) */}
+      <div className="relative overflow-hidden rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl p-8 sm:p-14 lg:p-16 animate-fade-in-up">
+        <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/10 rounded-full blur-[120px] pointer-events-none opacity-40 dark:opacity-20" />
+        
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-12 text-center xl:text-left">
+          <div className="space-y-8 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] border border-slate-200 dark:border-slate-700 mx-auto xl:mx-0 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              Telegram Assistant
             </div>
-            {error && <p className="mt-2 text-center text-sm text-expense">{error}</p>}
-          </>
-        ) : (
-          <div className="rounded-xl border border-border dark:border-slate-600 bg-white dark:bg-slate-800 p-4 text-center">
-            <p className="mb-2 text-sm text-muted dark:text-slate-400">Kirim ke bot Telegram:</p>
-            <p className="mb-2 font-mono text-lg font-bold tracking-wider text-primary">
-              /link {code}
-            </p>
-            <p className="mb-3 text-xs text-muted dark:text-slate-500">Kode berlaku 10 menit.</p>
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={loading}
-                className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-              >
-                Buat kode baru
-              </button>
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">
+                 Link Your <span className="text-primary italic">Telegram Bot.</span>
+              </h1>
+              <p className="text-base sm:text-lg lg:text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-xl mx-auto xl:mx-0 animate-fade-in [animation-delay:300ms]">
+                Catat transaksi secepat kilat langsung dari chat tanpa perlu buka browser. Akun tersinkronisasi otomatis dengan asisten robot pintar kami.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center xl:justify-start gap-3 sm:gap-4 animate-fade-in [animation-delay:600ms]">
+              {["Cepat", "Aman", "Otomatis"].map((tag, i) => (
+                <span key={tag} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-700 font-black text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 hover:scale-105 transition-all hover:bg-white dark:hover:bg-slate-800 shadow-sm">
+                  {i === 0 ? "🚀" : i === 1 ? "🔒" : "⚡"} {tag}
+                </span>
+              ))}
             </div>
           </div>
-        )}
+          
+          <div className="shrink-0 relative group animate-float mx-auto xl:mx-0">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-700 opacity-60 dark:opacity-40" />
+            <div className="relative bg-white dark:bg-slate-800 p-10 sm:p-14 lg:p-16 rounded-[4.5rem] shadow-2xl ring-2 ring-slate-100 dark:ring-slate-800 scale-105">
+               <svg className="w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        {/* --- CARD: LINK OTOMATIS --- */}
+        <section
+          id="otomatis"
+          className="group relative flex flex-col rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-12 shadow-xl transition-all hover:-translate-y-1.5 hover:shadow-2xl animate-fade-in-up [animation-delay:200ms]"
+        >
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          
+          <div className="relative flex flex-col gap-10 h-full">
+            <div className="space-y-8 flex-1">
+              <div className="flex items-center gap-5">
+                <span className="flex h-16 w-16 items-center justify-center rounded-[1.75rem] bg-white dark:bg-slate-800 text-3xl shadow-lg ring-1 ring-slate-100 dark:ring-slate-700/50 group-hover:rotate-12 transition-transform">⚡</span>
+                <div className="space-y-1">
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none">Link Otomatis</h2>
+                  <p className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-[0.25em] mt-2">Recommended Setup</p>
+                </div>
+              </div>
+
+              <p className="text-base text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+                Metode tercepat! Cukup klik tombol di bawah, ketuk <strong>Start</strong> di Telegram, dan akun Anda langsung tersambung.
+              </p>
+
+              <div className="grid grid-cols-1 gap-4">
+                {[ 
+                  { step: 1, text: "Buka di Telegram" },
+                  { step: 2, text: "Ketuk Tombol START" }
+                ].map(s => (
+                  <div key={s.step} className="flex gap-4 items-center group/step">
+                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-primary font-black shadow-md border border-slate-100 dark:border-slate-800 group-hover/step:bg-primary group-hover/step:text-white transition-all text-sm">{s.step}</span>
+                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover/step:text-primary transition-colors">{s.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-amber-100/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 p-5 rounded-3xl text-xs font-bold text-amber-800 dark:text-amber-200">
+                ⚠️ <strong className="ml-1 text-[10px] uppercase tracking-wider">PENTING:</strong> Tidak mendukung Telegram Web.
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-primary/10">
+               <button
+                  type="button"
+                  onClick={async () => {
+                    setLoading(true);
+                    setError("");
+                    try {
+                      const res = await fetch("/api/telegram/link-code", { method: "POST" });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Gagal");
+                      openTelegramUrl(`${TELEGRAM_BOT_URL}?start=${data.code}`);
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : "Gagal");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-4 rounded-[2rem] bg-primary text-white shadow-xl shadow-primary/25 hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-50 relative overflow-hidden group/btn min-h-[4.5rem]"
+               >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
+                  <svg className={`h-6 w-6 ${loading ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="currentColor">
+                    {loading ? (
+                      <path d="M12 4v4m0 8v4m-8-8h4m8 0h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    ) : (
+                      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                    )}
+                  </svg>
+                  {loading ? "MENYIAPKAN..." : "BUKA TELEGRAM"}
+               </button>
+               {error && <p className="mt-4 text-center text-xs font-black text-red-500">{error}</p>}
+            </div>
+          </div>
+        </section>
+
+        {/* --- CARD: LINK MANUAL --- */}
+        <section
+          id="link-manual"
+          className="group relative flex flex-col rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-12 shadow-xl transition-all hover:-translate-y-1.5 hover:shadow-2xl animate-fade-in-up [animation-delay:400ms]"
+        >
+          <div className="relative flex flex-col gap-10 h-full">
+            <div className="space-y-8 flex-1">
+              <div className="flex items-center gap-5">
+                <span className="flex h-16 w-16 items-center justify-center rounded-[1.75rem] bg-slate-50 dark:bg-slate-800 text-3xl shadow-sm ring-1 ring-slate-100 dark:ring-slate-700/50 group-hover:rotate-12 transition-transform">✏️</span>
+                <div className="space-y-1">
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none">Manual Link</h2>
+                  <p className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] mt-2">Bot Support Center</p>
+                </div>
+              </div>
+
+              <p className="text-base text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-left">
+                Gunakan jika link otomatis lambat. Cukup kirim kode ke asisten robot di chat.
+              </p>
+
+              <div className="space-y-6">
+                 <div className="flex flex-wrap lg:justify-start gap-4 sm:gap-6">
+                    {[ 
+                       { step: 1, text: "Buat kode" },
+                       { step: 2, text: "Buka bot" },
+                       { step: 3, text: "Kirim /link KODE" }
+                    ].map(s => (
+                       <div key={s.step} className="flex gap-3 items-center group/step">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-50/80 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-black shadow-sm border border-slate-100 dark:border-slate-800 group-hover/step:bg-primary group-hover/step:text-white transition-all text-sm">{s.step}</span>
+                          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 group-hover/step:text-primary transition-colors leading-none tracking-tight">{s.text}</p>
+                       </div>
+                    ))}
+                 </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+              {!code ? (
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className="w-full py-6 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white font-black hover:border-primary dark:hover:border-primary hover:text-primary transition-all active:scale-95 disabled:opacity-50 min-h-[4.5rem]"
+                >
+                  {loading ? "TUNGGU..." : "BUAT KODE MANUAL"}
+                </button>
+              ) : (
+                <div className="relative group/code overflow-hidden rounded-[2.5rem] bg-primary p-8 text-center shadow-lg animate-in zoom-in-95 duration-200">
+                  <div className="absolute top-0 right-0 p-4"><span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /></div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/50 mb-3">Copy & Paste to Bot:</p>
+                  <div className="flex flex-col gap-2 items-center">
+                    <p className="text-2xl sm:text-3xl font-black tracking-widest text-white font-mono break-all drop-shadow-md">
+                      /link {code}
+                    </p>
+                    <div className="h-1 w-12 bg-white/20 rounded-full" />
+                  </div>
+                  <p className="text-[9px] font-black tracking-[0.1em] text-white/40 mt-4 uppercase">KODE AKTIF 10 MENIT</p>
+                  <button
+                    onClick={handleGenerate}
+                    className="mt-6 text-[10px] font-black text-white/80 hover:text-white transition-all uppercase tracking-[0.15em] hover:underline"
+                  >
+                    Ganti Kode Baru
+                  </button>
+                </div>
+              )}
+               {error && <p className="mt-4 text-center text-xs font-black text-red-500">{error}</p>}
+            </div>
+          </div>
         </section>
       </div>
 
-      <section className="rounded-2xl border border-border dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/30 p-4 sm:p-5">
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-          <span aria-hidden>✅</span>
-          Setelah terhubung
-        </h3>
-        <p className="text-sm text-muted dark:text-slate-400">
-          Kirim pesan ke bot untuk catat transaksi (misalnya <span className="font-mono text-slate-700 dark:text-slate-300">+50000 gaji</span>, <span className="font-mono text-slate-700 dark:text-slate-300">-25000 kopi</span>), setor tabungan (<span className="font-mono text-slate-700 dark:text-slate-300">setor 100rb</span>), atau ketik <span className="font-mono text-slate-700 dark:text-slate-300">/tabungan</span> untuk cek saldo. Data langsung muncul di dashboard ini.
-        </p>
+      {/* --- TIPS SECTION --- (Gmail Style) */}
+      <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] sm:rounded-[3.5rem] p-10 sm:p-14 border border-slate-200 dark:border-slate-800 animate-fade-in-up [animation-delay:600ms] transition-all group shadow-lg">
+        <div className="flex flex-col md:flex-row items-center gap-10">
+          <div className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 flex items-center justify-center rounded-[2rem] bg-emerald-500 text-white text-4xl sm:text-5xl shadow-xl shadow-emerald-500/20 animate-pulse-subtle group-hover:scale-110 transition-transform">🎁</div>
+          <div className="space-y-4 text-center md:text-left">
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Tips Anti Ribet! 🚀</h3>
+            <p className="text-base sm:text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-4xl">
+              Biar makin pro, coba kirim format cepat: <span className="text-emerald-600 dark:text-emerald-400 font-bold px-3 py-1 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-500/20 mx-1 whitespace-nowrap">+50rb gaji</span> atau <span className="text-red-500 font-bold px-3 py-1 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-red-100 dark:border-red-500/20 mx-1 whitespace-nowrap">-25k kopi</span>. Data bakal langsung sinkron!
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );

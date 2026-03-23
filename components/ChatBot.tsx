@@ -118,6 +118,13 @@ export function ChatBot({ onTransactionAdded }: { onTransactionAdded?: () => voi
     };
   }, [open]);
 
+  // Global event listener to open chat from anywhere
+  useEffect(() => {
+    const handleToggle = () => setOpen(true);
+    window.addEventListener("toggle-cike-ai", handleToggle);
+    return () => window.removeEventListener("toggle-cike-ai", handleToggle);
+  }, []);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
