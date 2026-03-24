@@ -244,18 +244,18 @@ export function EmailSyncManager() {
         confirmLabel="Ya, Putuskan" cancelLabel="Batal" variant="danger" onConfirm={handleUnlink} onClose={() => setShowUnlinkModal(false)} loading={loading}
       />
 
-      {/* --- HERO SECTION --- */}
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl p-8 sm:p-10 lg:p-14 animate-fade-in-up">
-        <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      {/* --- HERO SECTION --- (Standardized with Telegram) */}
+      <div className="relative overflow-hidden rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl p-8 sm:p-14 lg:p-16 animate-fade-in-up">
+        <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/10 rounded-full blur-[120px] pointer-events-none opacity-40 dark:opacity-20" />
         
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12 text-center lg:text-left">
-          <div className="space-y-6 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200 dark:border-slate-700 mx-auto lg:mx-0">
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-12 text-center xl:text-left">
+          <div className="space-y-8 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] border border-slate-200 dark:border-slate-700 mx-auto xl:mx-0 shadow-sm">
                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                Email Automation System
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter leading-tight min-h-[80px] sm:min-h-[90px] lg:min-h-0 text-slate-900 dark:text-white">
                 <Typewriter phrases={["Hapus Capek Mengetik", "Bebas Salah Hitung", "Data Akurat & Otomatis"]} />
               </h1>
@@ -263,10 +263,10 @@ export function EmailSyncManager() {
                 Biarkan <span className="text-primary italic">Auto-Sync</span> Bekerja.
               </h1>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg leading-relaxed animate-fade-in [animation-delay:500ms]">
+            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed animate-fade-in [animation-delay:300ms]">
               Dukungan penuh untuk notifikasi digital BCA & Mandiri. Setiap transaksi yang masuk ke Gmail akan kami proses secara otomatis dalam hitungan titik.
             </p>
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2 animate-fade-in [animation-delay:800ms]">
+            <div className="flex flex-wrap justify-center xl:justify-start gap-4 animate-fade-in [animation-delay:600ms]">
                {["Bank BCA", "Bank Mandiri"].map((bank) => (
                   <div key={bank} className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/50 px-5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700">
                      <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{bank}</span>
@@ -275,10 +275,10 @@ export function EmailSyncManager() {
                ))}
             </div>
           </div>
-          <div className="shrink-0 relative mx-auto lg:mx-0 animate-float">
-             <div className="absolute inset-0 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
-              <div className="relative bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-[3.5rem] shadow-2xl ring-1 ring-slate-100 dark:ring-slate-700">
-                 <img src="/gmail logo.png" alt="Gmail" className="w-20 h-20 sm:w-24 sm:h-24 object-contain" />
+          <div className="shrink-0 relative group animate-float mx-auto xl:mx-0">
+             <div className="absolute inset-0 bg-primary/20 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-700 opacity-60 dark:opacity-40" />
+              <div className="relative bg-white dark:bg-slate-800 p-10 sm:p-14 lg:p-16 rounded-[4.5rem] shadow-2xl ring-2 ring-slate-100 dark:ring-slate-800 scale-105">
+                 <img src="/gmail logo.png" alt="Gmail" className="w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 object-contain" />
               </div>
           </div>
         </div>
