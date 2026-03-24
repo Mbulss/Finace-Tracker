@@ -30,6 +30,7 @@ export function CountUp({
     }
 
     if (value !== display) requestAnimationFrame(tick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration]);
 
   useEffect(() => {

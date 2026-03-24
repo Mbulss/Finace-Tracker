@@ -51,7 +51,7 @@ export function DeleteConfirmModal({
             {amount}
           </p>
           {transaction.note && (
-            <p className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 italic">"{transaction.note}"</p>
+            <p className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 italic">&quot;{transaction.note}&quot;</p>
           )}
         </div>
 

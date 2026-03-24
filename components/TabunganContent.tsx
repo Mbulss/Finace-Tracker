@@ -634,8 +634,10 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
       </div>
 
       {/* Celengan */}
-      <section className="rounded-[2.5rem] border border-border/50 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xl relative overflow-hidden group">
-        <div className="absolute -top-32 -left-32 w-80 h-80 bg-primary/5 rounded-full blur-[100px] pointer-events-none opacity-50 transition-transform group-hover:scale-125" />
+      <section className="rounded-[2.5rem] border border-border/50 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xl relative group">
+        <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+          <div className="absolute -top-32 -left-32 w-80 h-80 bg-primary/5 rounded-full blur-[100px] opacity-50 transition-transform group-hover:scale-125" />
+        </div>
         <div className="flex items-center justify-between mb-6 relative z-10">
           <div className="flex flex-col">
             <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white sm:text-2xl uppercase tracking-tighter">Celengan</h2>
@@ -759,9 +761,9 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
 
         {/* Modal Tambah / Edit celengan */}
         {(addingPot || editingPot) && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 z-[110] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xl animate-in fade-in duration-300"
+              className="absolute inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xl animate-in fade-in duration-300 rounded-[2.5rem]"
               onClick={() => {
                 if (addingPot) {
                   setAddingPot(false);
@@ -774,7 +776,7 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
               aria-hidden
             />
             <div
-              className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.3)] p-8 overflow-hidden animate-in zoom-in-95 fade-in duration-200"
+              className="relative w-full max-w-md bg-white/95 dark:bg-slate-900/95 border border-border/50 dark:border-slate-800 rounded-[2.5rem] shadow-2xl p-6 overflow-hidden animate-in zoom-in-95 fade-in duration-200"
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
@@ -783,11 +785,11 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
               <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
               <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none" />
 
-              <div className="relative z-10 space-y-8">
+              <div className="relative z-10 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">
-                      {addingPot ? "Tambah Celengan" : "Edit Celengan"}
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">
+                      {addingPot ? "Tambah Celengan" : "Edit"}
                     </h3>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Atur target keuangan barumu</p>
                   </div>
@@ -888,8 +890,7 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
                       />
                     </div>
                   </div>
-
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex gap-3 mt-4">
                     <button
                       type="button"
                       onClick={() => {
@@ -901,7 +902,7 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
                           setNewPotDescription("");
                         } else setEditingPot(null);
                       }}
-                      className="flex-1 py-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-slate-500 dark:text-slate-400 text-xs font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all uppercase"
+                      className="flex-1 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-transparent text-slate-500 dark:text-slate-400 text-[10px] font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all uppercase"
                     >
                       Batal
                     </button>
@@ -955,7 +956,7 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
                           } else showToast(err.message, "error");
                         }
                       }}
-                      className="flex-1 py-5 rounded-2xl bg-primary text-white font-black tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all text-xs uppercase"
+                      className="flex-1 h-12 rounded-2xl bg-primary text-white font-black tracking-[0.2em] shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all text-[10px] uppercase"
                     >
                       Simpan
                     </button>
@@ -965,6 +966,49 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
             </div>
           </div>
         )}
+
+        <ConfirmModal
+          open={!!potToDelete}
+          title="Hapus celengan ini?"
+          description="Riwayat setor/tarik di celengan ini akan dipindahkan ke Umum."
+          confirmLabel="Ya, hapus"
+          cancelLabel="Batal"
+          variant="danger"
+          loading={deletePotLoading}
+          onClose={() => setPotToDelete(null)}
+          onConfirm={async () => {
+            if (!potToDelete) return;
+            setDeletePotLoading(true);
+            try {
+              const { error: err } = await supabase
+                .from("savings_pots")
+                .delete()
+                .eq("id", potToDelete.id)
+                .eq("user_id", userId);
+              if (err) throw err;
+              if (selectedPotId === potToDelete.id) setSelectedPotId(null);
+              setPotToDelete(null);
+              showToast("Celengan dihapus");
+              fetchPots();
+              fetchEntries();
+            } catch {
+              showToast("Gagal menghapus celengan", "error");
+            } finally {
+              setDeletePotLoading(false);
+            }
+          }}
+        >
+          {potToDelete && (
+            <div className="rounded-xl border border-border dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-4 py-3">
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                {potToDelete.name}
+              </p>
+              <p className="mt-0.5 text-sm text-muted dark:text-slate-400">
+                Saldo: {formatCurrency(balanceByPot[potToDelete.id] ?? 0)}
+              </p>
+            </div>
+          )}
+        </ConfirmModal>
       </section>
 
       {/* Aksi Cepat / Tabbed Actions */}
@@ -1408,55 +1452,13 @@ export function TabunganContent({ userId, initialTelegramLinked = false }: Tabun
               </p>
               {deletingEntry.note && (
                 <p className="mt-0.5 text-sm text-muted dark:text-slate-400 italic">
-                  "{deletingEntry.note}"
+                  &quot;{deletingEntry.note}&quot;
                 </p>
               )}
             </div>
           )}
         </ConfirmModal>
 
-        <ConfirmModal
-          open={!!potToDelete}
-          title="Hapus celengan ini?"
-          description="Riwayat setor/tarik di celengan ini akan dipindahkan ke Umum."
-          confirmLabel="Ya, hapus"
-          cancelLabel="Batal"
-          variant="danger"
-          loading={deletePotLoading}
-          onClose={() => setPotToDelete(null)}
-          onConfirm={async () => {
-            if (!potToDelete) return;
-            setDeletePotLoading(true);
-            try {
-              const { error: err } = await supabase
-                .from("savings_pots")
-                .delete()
-                .eq("id", potToDelete.id)
-                .eq("user_id", userId);
-              if (err) throw err;
-              if (selectedPotId === potToDelete.id) setSelectedPotId(null);
-              setPotToDelete(null);
-              showToast("Celengan dihapus");
-              fetchPots();
-              fetchEntries();
-            } catch {
-              showToast("Gagal menghapus celengan", "error");
-            } finally {
-              setDeletePotLoading(false);
-            }
-          }}
-        >
-          {potToDelete && (
-            <div className="rounded-xl border border-border dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-4 py-3">
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                {potToDelete.name}
-              </p>
-              <p className="mt-0.5 text-sm text-muted dark:text-slate-400">
-                Saldo: {formatCurrency(balanceByPot[potToDelete.id] ?? 0)}
-              </p>
-            </div>
-          )}
-        </ConfirmModal>
       </section>
 
     </div>

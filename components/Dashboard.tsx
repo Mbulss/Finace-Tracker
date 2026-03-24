@@ -353,32 +353,42 @@ export function Dashboard({ userId }: DashboardProps) {
           onDelete={handleDelete}
           onEdit={handleEdit}
         />
+
+        {/* Import Modal */}
+        {showImport && (
+          <div className="absolute inset-0 z-[110] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-xl animate-in fade-in duration-300 rounded-[2.5rem]"
+              onClick={() => setShowImport(false)}
+              aria-hidden
+            />
+            <div
+              className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+               <div className="flex items-center justify-between mb-6">
+                  <div>
+                     <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Impor Data</h3>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-primary/70 mt-1">Upload file CSV hasil export kamu</p>
+                  </div>
+                  <button onClick={() => setShowImport(false)} className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400">
+                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+               </div>
+               <ImportCSV
+                  userId={userId}
+                  onSuccess={() => {
+                     setShowImport(false);
+                     fetchTransactions();
+                  }}
+               />
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Import Modal */}
-      {showImport && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/80 backdrop-blur-md" onClick={() => setShowImport(false)} />
-          <div className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-border/50 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl p-8 animate-in zoom-in-95 duration-200">
-             <div className="flex items-center justify-between mb-8">
-                <div>
-                   <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Impor Data</h3>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-primary/70 mt-1">Upload file CSV hasil export kamu</p>
-                </div>
-                <button onClick={() => setShowImport(false)} className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400">
-                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-             </div>
-             <ImportCSV 
-                userId={userId} 
-                onSuccess={() => {
-                   setShowImport(false);
-                   fetchTransactions();
-                }} 
-             />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
