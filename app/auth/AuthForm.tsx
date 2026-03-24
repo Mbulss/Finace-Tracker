@@ -91,6 +91,8 @@ export function AuthForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const getInitialMessage = () => {
     if (passwordUpdated) return "Password berhasil diubah. Silakan masuk dengan password baru.";
@@ -123,13 +125,22 @@ export function AuthForm({
     let willRedirect = false;
     try {
       if (isForgotPassword) {
-        if (!email.includes("@")) throw new Error("Format email tidak valid.");
-        const resetRedirectTo = `${redirectTo}?flow=recovery`;
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetRedirectTo });
-        if (error) throw error;
-        setMessage("Link reset password dikirim! Cek inbox atau spam.");
-        setEmail("");
-        setIsForgotPassword(false);
+        if (!otpRequested) {
+          if (!email.includes("@")) throw new Error("Format email tidak valid.");
+          const resetRedirectTo = `${redirectTo}?flow=recovery`;
+          const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetRedirectTo });
+          if (error) throw error;
+          setMessage("Minta token? Kode OTP (6 digit) telah dikirim ke email kamu. Cek inbox atau spam.");
+          setOtpRequested(true);
+        } else {
+          if (otp.length !== 6) throw new Error("Kode OTP harus 6 digit angka.");
+          const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'recovery' });
+          if (error) throw error;
+          willRedirect = true;
+          setMessage("Kode berhasil diverifikasi! Mengalihkan ke pembaruan sandi...");
+          router.push('/auth/update-password');
+          return;
+        }
       } else if (isSignUp) {
         if (password !== confirmPassword) throw new Error("Password konfirmasi tidak cocok.");
         if (password.length < 8) throw new Error("Password minimal 8 karakter demi keamanan.");
@@ -245,20 +256,69 @@ export function AuthForm({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label htmlFor="email" className="ml-4 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-              Alamat Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-[1.25rem] border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-800/50 dark:text-slate-100 px-5 py-3 text-sm font-bold shadow-sm placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all duration-300"
-              placeholder="nama@email.com"
-            />
-          </div>
+          {isForgotPassword && otpRequested ? (
+            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 relative py-2">
+              <label htmlFor="otp" className="text-center block text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300">
+                Masukkan Kode OTP
+              </label>
+              
+              <div className="relative flex justify-center gap-2 sm:gap-3">
+                {[0, 1, 2, 3, 4, 5].map((index) => {
+                  const digit = otp[index] || "";
+                  const isActive = otp.length === index;
+                  return (
+                    <div 
+                      key={index}
+                      className={`relative flex h-14 w-11 sm:h-16 sm:w-12 items-center justify-center rounded-2xl border-2 text-2xl font-black transition-all duration-300 ${
+                        isActive 
+                          ? "border-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-[0_0_20px_rgba(14,165,233,0.3)] scale-110 z-10" 
+                          : digit 
+                            ? "border-primary/50 bg-primary/5 text-slate-900 dark:text-white"
+                            : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-400"
+                      }`}
+                    >
+                      {digit}
+                      {isActive && <div className="absolute w-0.5 h-1/2 bg-primary animate-pulse rounded-full" />}
+                    </div>
+                  );
+                })}
+                {/* Hidden overlay input to capture typing naturally (works with iOS AutoFill OTP) */}
+                <input
+                  id="otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  required
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-text z-20"
+                />
+              </div>
+
+              <div className="rounded-2xl bg-amber-500/10 p-4 border border-amber-500/20 text-center">
+                 <p className="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-500 leading-relaxed">
+                   Cek pesan masuk di email kamu. <br className="hidden sm:block" />
+                   Ketik 6 angkanya di atas. <span className="underline decoration-amber-500/50 underline-offset-2">Abaikan tombol link.</span>
+                 </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="ml-4 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                Alamat Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full rounded-[1.25rem] border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-800/50 dark:text-slate-100 px-5 py-3 text-sm font-bold shadow-sm placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:border-primary/50 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all duration-300"
+                placeholder="nama@email.com"
+              />
+            </div>
+          )}
 
           {!isForgotPassword && (
             <div className="space-y-3">
@@ -358,9 +418,9 @@ export function AuthForm({
                 <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               ) : null}
               {loading
-                ? (isForgotPassword ? "Mengirim..." : isSignUp ? "Mendaftar..." : "Proses...")
+                ? (isForgotPassword ? (otpRequested ? "Memverifikasi..." : "Mengirim...") : isSignUp ? "Mendaftar..." : "Proses...")
                 : isForgotPassword
-                  ? "Atur Ulang"
+                  ? (otpRequested ? "Verifikasi OTP" : "Kirim Kode OTP")
                   : isSignUp
                     ? "Buat Akun"
                     : "Akses Dashboard"}
@@ -372,7 +432,7 @@ export function AuthForm({
           {isForgotPassword ? (
             <button
               type="button"
-              onClick={() => { setIsForgotPassword(false); setMessage(""); }}
+              onClick={() => { setIsForgotPassword(false); setOtpRequested(false); setOtp(""); setMessage(""); }}
               className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all underline underline-offset-4 decoration-slate-200 dark:decoration-slate-800"
             >
               ← Kembali Masuk
