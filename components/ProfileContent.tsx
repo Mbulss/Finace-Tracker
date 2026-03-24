@@ -167,7 +167,7 @@ export function ProfileContent({ email, isGoogleUser = false }: ProfileContentPr
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
         {/* --- INFO AKUN CARD --- */}
-        <section className="group relative flex flex-col rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-12 shadow-xl transition-all hover:-translate-y-1.5 hover:shadow-2xl animate-fade-in-up [animation-delay:200ms]">
+        <section className="group relative flex flex-col overflow-hidden rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-12 shadow-xl transition-all hover:-translate-y-1.5 hover:shadow-2xl animate-fade-in-up [animation-delay:200ms]">
           <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           
           <div className="relative flex flex-col gap-10 h-full">
