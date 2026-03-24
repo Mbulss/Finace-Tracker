@@ -288,9 +288,16 @@ export function AuthForm({
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  maxLength={8}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  onPaste={(e) => {
+                    const pastedText = e.clipboardData.getData("text");
+                    const digits = pastedText.replace(/\D/g, "");
+                    if (digits) {
+                      e.preventDefault();
+                      setOtp(digits.slice(0, 8));
+                    }
+                  }}
                   required
                   className="absolute inset-0 w-full h-full opacity-0 cursor-text z-20"
                 />
