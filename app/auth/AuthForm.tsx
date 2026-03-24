@@ -130,10 +130,10 @@ export function AuthForm({
           const resetRedirectTo = `${redirectTo}?flow=recovery`;
           const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetRedirectTo });
           if (error) throw error;
-          setMessage("Minta token? Kode OTP (6 digit) telah dikirim ke email kamu. Cek inbox atau spam.");
+          setMessage("Minta token? Kode OTP (8 digit) telah dikirim ke email kamu. Cek inbox atau spam.");
           setOtpRequested(true);
         } else {
-          if (otp.length !== 6) throw new Error("Kode OTP harus 6 digit angka.");
+          if (otp.length !== 8) throw new Error("Kode OTP harus 8 digit angka.");
           const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'recovery' });
           if (error) throw error;
           willRedirect = true;
@@ -262,16 +262,16 @@ export function AuthForm({
                 Masukkan Kode OTP
               </label>
               
-              <div className="relative flex justify-center gap-2 sm:gap-3">
-                {[0, 1, 2, 3, 4, 5].map((index) => {
+              <div className="relative flex justify-center gap-1.5 sm:gap-2">
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => {
                   const digit = otp[index] || "";
                   const isActive = otp.length === index;
                   return (
                     <div 
                       key={index}
-                      className={`relative flex h-14 w-11 sm:h-16 sm:w-12 items-center justify-center rounded-2xl border-2 text-2xl font-black transition-all duration-300 ${
+                      className={`relative flex h-12 w-9 sm:h-14 sm:w-10 items-center justify-center rounded-xl border-2 text-xl font-black transition-all duration-300 ${
                         isActive 
-                          ? "border-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-[0_0_20px_rgba(14,165,233,0.3)] scale-110 z-10" 
+                          ? "border-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(14,165,233,0.3)] scale-110 z-10" 
                           : digit 
                             ? "border-primary/50 bg-primary/5 text-slate-900 dark:text-white"
                             : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-400"
@@ -288,9 +288,9 @@ export function AuthForm({
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  maxLength={6}
+                  maxLength={8}
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))}
                   required
                   className="absolute inset-0 w-full h-full opacity-0 cursor-text z-20"
                 />
@@ -299,7 +299,7 @@ export function AuthForm({
               <div className="rounded-2xl bg-amber-500/10 p-4 border border-amber-500/20 text-center">
                  <p className="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-500 leading-relaxed">
                    Cek pesan masuk di email kamu. <br className="hidden sm:block" />
-                   Ketik 6 angkanya di atas. <span className="underline decoration-amber-500/50 underline-offset-2">Abaikan tombol link.</span>
+                   Ketik 8 angkanya di atas. <span className="underline decoration-amber-500/50 underline-offset-2">Abaikan tombol link.</span>
                  </p>
               </div>
             </div>
