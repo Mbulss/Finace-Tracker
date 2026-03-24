@@ -130,7 +130,7 @@ export function AuthForm({
           const resetRedirectTo = `${redirectTo}?flow=recovery`;
           const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetRedirectTo });
           if (error) throw error;
-          setMessage("Minta token? Kode OTP (8 digit) telah dikirim ke email kamu. Cek inbox atau spam.");
+          setMessage(""); // Kosongkan pesan notifikasi hijau agar tidak double dengan box orange
           setOtpRequested(true);
         } else {
           if (otp.length !== 8) throw new Error("Kode OTP harus 8 digit angka.");
@@ -285,6 +285,7 @@ export function AuthForm({
                 {/* Hidden overlay input to capture typing naturally (works with iOS AutoFill OTP) */}
                 <input
                   id="otp"
+                  name="otp"
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
@@ -299,7 +300,8 @@ export function AuthForm({
                     }
                   }}
                   required
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-text z-20"
+                  className="absolute inset-0 w-full h-full cursor-text z-20 outline-none border-none focus:ring-0 bg-transparent text-transparent caret-transparent"
+                  style={{ color: "transparent", textShadow: "0 0 0 transparent" }}
                 />
               </div>
 
