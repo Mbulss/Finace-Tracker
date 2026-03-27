@@ -112,6 +112,7 @@ export function EmailSyncManager() {
   const [showUnlinkModal, setShowUnlinkModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isIntegrated, setIsIntegrated] = useState(false);
+  const [checkingIntegration, setCheckingIntegration] = useState(true);
 
   const supabase = createClient();
   const { showToast } = useToast();
@@ -129,6 +130,7 @@ export function EmailSyncManager() {
     
     // Always check with backend even if session has no provider_token (it might have expired)
     try {
+      setCheckingIntegration(true);
       if (session.provider_refresh_token) {
         await fetch("/api/email/integration", {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -140,12 +142,13 @@ export function EmailSyncManager() {
       const json = await res.json();
       setIsIntegrated(!!json.integrated);
       
-      // If backend says not integrated and session has no token, make sure we show disconnected
       if (!json.integrated && !session.provider_token) { 
         setProviderToken(null); 
       }
     } catch (e) { 
       console.error("Integration check failed", e); 
+    } finally {
+      setCheckingIntegration(false);
     }
   }, []);
 

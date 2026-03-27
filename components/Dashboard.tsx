@@ -37,6 +37,7 @@ export function Dashboard({ userId }: DashboardProps) {
   const [savingsEntries, setSavingsEntries] = useState<{ amount: number; type: "deposit" | "withdraw" }[]>([]);
   const [totalSavings, setTotalSavings] = useState(0);
   const [showImport, setShowImport] = useState(false);
+  const [syncingEmail, setSyncingEmail] = useState(false);
   const liveUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
   const { showToast } = useToast();
@@ -69,6 +70,31 @@ export function Dashboard({ userId }: DashboardProps) {
 
   useEffect(() => {
     fetchTransactions();
+
+    // Auto-sync email in background on mount
+    const checkAndSyncEmail = async () => {
+      try {
+        const integRes = await fetch("/api/email/integration");
+        const integJson = await integRes.json();
+        
+        if (integJson.integrated) {
+          setSyncingEmail(true);
+          // Trigger silent sync
+          await fetch("/api/email/sync/manual", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}), // Backend will use refresh token
+          });
+        }
+      } catch (err) {
+        console.error("Auto-sync failed", err);
+      } finally {
+        setSyncingEmail(false);
+        fetchTransactions(); // Refresh after sync
+      }
+    };
+
+    checkAndSyncEmail();
 
     const channel = supabase
       .channel(`transactions:${userId}`)
@@ -191,6 +217,12 @@ export function Dashboard({ userId }: DashboardProps) {
         <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">{greeting}</span>
+            {syncingEmail && (
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest animate-fade-in">
+                <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                Syncing Gmail...
+              </span>
+            )}
             {liveUpdated && (
               <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest animate-fade-in">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />

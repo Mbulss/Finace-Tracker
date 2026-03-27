@@ -176,29 +176,22 @@ export async function POST(req: NextRequest) {
 
     const providerTag = parsed.referenceId
       ? `[email:${parsed.provider}:${parsed.referenceId}]`
-      : `[email:${parsed.provider}:no-ref]`;
+      : `[email:${parsed.provider}:no-ref:${parsed.amount}:${parsed.occurredAtISO}]`;
       
-    const notePieces = [
-      providerTag,
-      parsed.merchantName,
-      parsed.merchantLocation ? `(${parsed.merchantLocation})` : "",
-      parsed.qrisRef ? `QRIS:${parsed.qrisRef}` : "",
-    ].filter(Boolean);
-    const note = notePieces.join(" ").slice(0, 200);
+    const noteBase = `📧 ${parsed.merchantName}${parsed.merchantLocation ? ` (${parsed.merchantLocation})` : ""}${parsed.qrisRef ? ` QRIS:${parsed.qrisRef}` : ""}`;
+    const note = `${noteBase} ${providerTag}`.slice(0, 200);
 
     const category = detectCategory(parsed.type, parsed.merchantName);
 
-    // Dedup via notes reference
-    if (parsed.referenceId) {
-      const { data: existing } = await adminClient
-        .from("transactions")
-        .select("id")
-        .eq("user_id", user.id)
-        .ilike("note", `${providerTag}%`)
-        .limit(1);
-        
-      if (existing && existing.length > 0) continue; // skip, already exists
-    }
+    // Dedup via notes reference (Always check even if no-ref)
+    const { data: existing } = await adminClient
+      .from("transactions")
+      .select("id")
+      .eq("user_id", user.id)
+      .ilike("note", `%${providerTag}%`)
+      .limit(1);
+      
+    if (existing && existing.length > 0) continue; // skip, already exists
 
     previewList.push({
       id: parsed.referenceId || Math.random().toString(),

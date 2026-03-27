@@ -155,9 +155,11 @@ function parseMandiri(textRaw: string): ParsedBankEmail | null {
   } catch {
     return null;
   }
+  const isIncome = /Incoming Transfer|Penerimaan|Kredit|Dana Masuk/i.test(textRaw + datePart + merchantName);
+
   return {
     provider: "mandiri",
-    type: "expense",
+    type: isIncome ? "income" : "expense",
     amount,
     occurredAtISO,
     merchantName: merchantName.trim().slice(0, 60),
@@ -188,9 +190,11 @@ function parseBCA(textRaw: string): ParsedBankEmail | null {
 
   if (!amount || !occurredAtISO || !merchantName) return null;
 
+  const isIncome = /Credit|Received from|Dana Masuk|Transfer Masuk/i.test(textRaw + merchantName);
+
   return {
     provider: "bca",
-    type: "expense",
+    type: isIncome ? "income" : "expense",
     amount,
     occurredAtISO,
     merchantName: merchantName.trim().slice(0, 60),
