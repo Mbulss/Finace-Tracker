@@ -29,10 +29,14 @@ export async function getAdminStats() {
   
   if (txError) throw txError;
 
-  const totalTransactions = transactions.length;
-  const totalVolume = transactions.reduce((acc, tx) => acc + Number(tx.amount), 0);
-  const totalIncome = transactions.filter(t => t.type === "income").reduce((acc, tx) => acc + Number(tx.amount), 0);
-  const totalExpense = transactions.filter(t => t.type === "expense").reduce((acc, tx) => acc + Number(tx.amount), 0);
+  // 2.1 Filter transactions to only include those from existing users (prevents "Unknown" data)
+  const validUserIds = new Set(users.map(u => u.id));
+  const filteredTransactions = transactions.filter(t => validUserIds.has(t.user_id));
+
+  const totalTransactions = filteredTransactions.length;
+  const totalVolume = filteredTransactions.reduce((acc, tx) => acc + Number(tx.amount), 0);
+  const totalIncome = filteredTransactions.filter(t => t.type === "income").reduce((acc, tx) => acc + Number(tx.amount), 0);
+  const totalExpense = filteredTransactions.filter(t => t.type === "expense").reduce((acc, tx) => acc + Number(tx.amount), 0);
 
   // 3. Prepare Growth Data for Charts (Last 30 days)
   const last30Days = Array.from({ length: 30 }, (_, i) => {
@@ -43,8 +47,8 @@ export async function getAdminStats() {
 
   const growthData = last30Days.map(date => {
     const usersOnDate = users.filter(u => u.created_at.startsWith(date)).length;
-    const txOnDate = transactions.filter(t => t.created_at.startsWith(date)).length;
-    const volumeOnDate = transactions
+    const txOnDate = filteredTransactions.filter(t => t.created_at.startsWith(date)).length;
+    const volumeOnDate = filteredTransactions
         .filter(t => t.created_at.startsWith(date))
         .reduce((acc, t) => acc + (t.type === "income" ? Number(t.amount) : -Number(t.amount)), 0);
 
@@ -57,7 +61,7 @@ export async function getAdminStats() {
   });
 
   // 4. Advanced Analytics: Top Users by Volume
-  const userVolumes = transactions.reduce((acc: any, tx) => {
+  const userVolumes = filteredTransactions.reduce((acc: any, tx) => {
     acc[tx.user_id] = (acc[tx.user_id] || 0) + Number(tx.amount);
     return acc;
   }, {});
@@ -65,13 +69,16 @@ export async function getAdminStats() {
   const topUsers = Object.entries(userVolumes)
     .map(([id, volume]) => {
       const user = users.find(u => u.id === id);
+      if (!user) return null; // Double check (though already filtered)
+      
       return {
         id,
-        email: user?.email || "Unknown",
+        email: user.email,
         volume: volume as number,
-        txCount: transactions.filter(t => t.user_id === id).length
+        txCount: filteredTransactions.filter(t => t.user_id === id).length
       };
     })
+    .filter((u): u is { id: string, email: string, volume: number, txCount: number } => u !== null)
     .sort((a, b) => b.volume - a.volume)
     .slice(0, 5);
 
@@ -146,10 +153,30 @@ export async function deleteUser(userId: string) {
   if (!(await isAdmin())) throw new Error("Unauthorized");
   
   const supabase = createSupabaseAdmin();
+  
+  // 1. Purge all associated records first
+  const tables = [
+    "transactions", 
+    "savings_entries", 
+    "savings_pots", 
+    "savings_reminders", 
+    "telegram_links", 
+    "telegram_link_codes", 
+    "telegram_category_session", 
+    "user_integrations"
+  ];
+
+  for (const table of tables) {
+    await supabase.from(table).delete().eq("user_id", userId);
+  }
+
+  // 2. Delete the user from Auth
   const { error } = await supabase.auth.admin.deleteUser(userId);
   
   if (error) throw error;
+  
   revalidatePath("/admin/users");
+  revalidatePath("/admin");
   return { success: true };
 }
 
