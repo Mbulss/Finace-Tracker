@@ -3,7 +3,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["pdf-parse", "pdfjs-dist"],
     outputFileTracingIncludes: {
-      '/api/parse-nobu-pdf': ['./scripts/**/*'],
+      '/api/parse-nobu-pdf': ['./scripts/**/*', './node_modules/pdfjs-dist/**/*'],
     },
   },
   async rewrites() {
