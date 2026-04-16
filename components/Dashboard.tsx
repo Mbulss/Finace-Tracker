@@ -285,9 +285,11 @@ export function Dashboard({ userId }: DashboardProps) {
           return new Date(y, m - 1, 1).toLocaleDateString("id-ID", { month: "long", year: "numeric" });
         })();
 
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Selamat pagi" : hour < 18 ? "Selamat siang" : "Selamat malam";
+  const [greeting, setGreeting] = useState("Halo");
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? "Selamat pagi" : hour < 18 ? "Selamat siang" : "Selamat malam");
+  }, []);
 
   return (
     <>
