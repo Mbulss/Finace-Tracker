@@ -45,11 +45,13 @@ export function Dashboard({ userId }: DashboardProps) {
   const [chartMode, setChartMode] = useState<"trend" | "comparison" | "forecast">("trend");
   const [customCategories, setCustomCategories] = useState<{ id: string; name: string; type: "income" | "expense" }[]>([]);
   const [hiddenCategories, setHiddenCategories] = useState<{ category_name: string; type: "income" | "expense" }[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   const liveUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [supabase] = useState(() => createClient());
   const { showToast } = useToast();
 
   useEffect(() => {
+    setIsMounted(true);
     const saved = localStorage.getItem("dashboard_show_amounts");
     if (saved !== null) {
       setShowAmounts(saved === "true");
@@ -584,7 +586,7 @@ export function Dashboard({ userId }: DashboardProps) {
       </div>
 
       {/* Global Import Modal */}
-      {showImport && typeof document !== "undefined" && createPortal(
+      {isMounted && showImport && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 cursor-default">
           <div
             className="absolute inset-0 bg-slate-900/60 dark:bg-black/90 backdrop-blur-md animate-fade-in"

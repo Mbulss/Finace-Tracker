@@ -28,6 +28,12 @@ export function SelectDropdown({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const selectedLabel = value === "all" || !value ? placeholder : options.find((o) => o.value === value)?.label ?? value;
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const updatePosition = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -154,7 +160,7 @@ export function SelectDropdown({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {typeof document !== "undefined" && createPortal(dropdownContent, document.body)}
+      {isMounted && createPortal(dropdownContent, document.body)}
     </div>
   );
 }

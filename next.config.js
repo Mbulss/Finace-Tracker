@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ["pdf-parse"],
+    serverComponentsExternalPackages: ["pdf-parse", "pdfjs-dist"],
+    outputFileTracingIncludes: {
+      '/api/parse-nobu-pdf': ['./scripts/**/*'],
+    },
   },
   async rewrites() {
     return {

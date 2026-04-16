@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ToastContext";
@@ -23,6 +23,11 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [password, setPassword] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [passwordError, setPasswordError] = useState("");
   
   // Custom Edit State
@@ -463,7 +468,7 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
         </div>
       )}
 
-      {previewModal && typeof document !== "undefined" && createPortal(previewModal, document.body)}
+      {isMounted && previewModal && createPortal(previewModal, document.body)}
     </>
   );
 }
