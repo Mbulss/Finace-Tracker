@@ -8,7 +8,7 @@ function runPdfParser(base64Data: string, password?: string): Promise<{ text: st
     const scriptPath = path.join(process.cwd(), "scripts", "parse-pdf.js");
     const args = password ? [scriptPath, password] : [scriptPath];
 
-    const child = execFile("node", args, {
+    const child = execFile(process.execPath, args, {
       maxBuffer: 100 * 1024 * 1024, // 100MB for large PDFs
     }, (error, stdout, stderr) => {
       try {
@@ -19,7 +19,7 @@ function runPdfParser(base64Data: string, password?: string): Promise<{ text: st
           resolve(result);
         }
       } catch {
-        reject(new Error(stderr || error?.message || "Failed to parse PDF"));
+        reject(new Error(`PDF ERR: ${stderr || ""} | MSG: ${error?.message || ""} | OUT: ${stdout || ""}`));
       }
     });
 
