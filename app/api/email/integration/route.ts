@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No refresh token provided" }, { status: 400 });
   }
 
+  console.log(`Saving new refresh token for user ${user.id}`);
   const adminClient = createSupabaseAdmin();
 
   // Upsert the integration to our database

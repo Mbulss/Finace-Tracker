@@ -132,10 +132,13 @@ export function EmailSyncManager() {
     try {
       setCheckingIntegration(true);
       if (session.provider_refresh_token) {
+        console.log("Found provider_refresh_token, updating backend...");
         await fetch("/api/email/integration", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: session.provider_refresh_token }),
         });
+      } else {
+        console.warn("No provider_refresh_token found in session.");
       }
       
       const res = await fetch("/api/email/integration");
