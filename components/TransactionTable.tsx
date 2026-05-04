@@ -21,13 +21,15 @@ interface TransactionTableProps {
   hiddenCategories?: { category_name: string; type: "income" | "expense" }[];
   userId: string;
   onRefreshCategories?: () => void;
+  periodLabel?: string;
+  isAllPeriod?: boolean;
 }
 
 const PAGE_SIZE = 15;
 
 type TypeFilter = "all" | "income" | "expense";
 
-export function TransactionTable({ transactions, onDelete, onDeleteAll, onEdit, userId, showAmounts = true, customCategories = [], hiddenCategories = [], onRefreshCategories }: TransactionTableProps) {
+export function TransactionTable({ transactions, onDelete, onDeleteAll, onEdit, userId, showAmounts = true, customCategories = [], hiddenCategories = [], onRefreshCategories, periodLabel = "Semua waktu", isAllPeriod = true }: TransactionTableProps) {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [viewing, setViewing] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState<Transaction | null>(null);
@@ -295,13 +297,16 @@ export function TransactionTable({ transactions, onDelete, onDeleteAll, onEdit, 
           setDeleteAllLoading(true);
           try {
             await onDeleteAll();
-            showToast("Semua data transaksi berhasil dihapus");
+            showToast(isAllPeriod ? "Semua data transaksi berhasil dihapus" : `Data transaksi ${periodLabel} berhasil dihapus`);
           } finally {
             setIsDeleteAllModalOpen(false);
             setDeleteAllLoading(false);
           }
         }}
         loading={deleteAllLoading}
+        periodLabel={periodLabel}
+        isAllPeriod={isAllPeriod}
+        transactionCount={transactions.length}
       />
     </>
   );

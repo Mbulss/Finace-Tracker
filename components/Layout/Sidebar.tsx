@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { InstallPWA } from "@/components/InstallPWA";
+import packageJson from "../../package.json";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -203,7 +204,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             {/* Version Label */}
             <div className="px-4 pb-2 pt-3 text-left">
               <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-300 dark:text-slate-600">
-                Version 1.6.1
+                Version {packageJson.version}
               </span>
             </div>
           </div>

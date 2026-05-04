@@ -8,6 +8,9 @@ interface DeleteAllConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   loading?: boolean;
+  periodLabel?: string;
+  isAllPeriod?: boolean;
+  transactionCount?: number;
 }
 
 export function DeleteAllConfirmModal({
@@ -15,9 +18,12 @@ export function DeleteAllConfirmModal({
   onClose,
   onConfirm,
   loading = false,
+  periodLabel = "Semua waktu",
+  isAllPeriod = true,
+  transactionCount = 0,
 }: DeleteAllConfirmModalProps) {
   const [confirmationText, setConfirmationText] = useState("");
-  const CONFIRM_PHRASE = "HAPUS SEMUA DATA";
+  const CONFIRM_PHRASE = isAllPeriod ? "HAPUS SEMUA DATA" : "HAPUS DATA BULAN INI";
   const isValid = confirmationText === CONFIRM_PHRASE;
 
   if (!isOpen) return null;
@@ -57,9 +63,27 @@ export function DeleteAllConfirmModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </div>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Hapus Semua Data?</h3>
-          <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-relaxed">
-            Seluruh riwayat transaksi kamu akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
+            {isAllPeriod ? "Hapus Semua Data?" : "Hapus Data Bulan Ini?"}
+          </h3>
+          
+          {/* Period badge */}
+          <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200/50 dark:border-rose-500/20">
+            <svg className="h-4 w-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+              {periodLabel}
+            </span>
+            <span className="text-[10px] font-bold text-rose-400 dark:text-rose-500">
+              ({transactionCount} transaksi)
+            </span>
+          </div>
+
+          <p className="mt-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-relaxed">
+            {isAllPeriod
+              ? "Seluruh riwayat transaksi kamu akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan."
+              : `Semua transaksi di periode "${periodLabel}" akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.`}
           </p>
         </div>
 
@@ -90,7 +114,11 @@ export function DeleteAllConfirmModal({
             disabled={loading || !isValid}
             className="h-14 w-full rounded-2xl bg-rose-500 font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-rose-500/25 hover:bg-rose-600 hover:shadow-rose-500/40 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
           >
-            {loading ? "Menghapus..." : "Ya, Hapus Semua Data"}
+            {loading
+              ? "Menghapus..."
+              : isAllPeriod
+                ? "Ya, Hapus Semua Data"
+                : `Ya, Hapus Data ${periodLabel}`}
           </button>
           <button
             type="button"

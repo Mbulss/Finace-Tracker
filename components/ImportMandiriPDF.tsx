@@ -9,14 +9,14 @@ import { type ParsedCSVRow } from "@/lib/csv-parser";
 import { CATEGORIES } from "@/lib/types";
 import { SelectDropdown } from "./SelectDropdown";
 
-interface ImportNobuPDFProps {
+interface ImportMandiriPDFProps {
   userId: string;
   onSuccess: () => void;
   customCategories?: { id: string; name: string; type: "income" | "expense" }[];
   hiddenCategories?: { category_name: string; type: "income" | "expense" }[];
 }
 
-export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hiddenCategories = [] }: ImportNobuPDFProps) {
+export function ImportMandiriPDF({ userId, onSuccess, customCategories = [], hiddenCategories = [] }: ImportMandiriPDFProps) {
   const [loading, setLoading] = useState(false);
   const [drag, setDrag] = useState(false);
   const [previewRows, setPreviewRows] = useState<ParsedCSVRow[] | null>(null);
@@ -52,7 +52,7 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
 
   async function handleFile(file: File, pdfPassword?: string) {
     if (!file.name.toLowerCase().endsWith(".pdf")) {
-      showToast("Pilih file PDF mutasi Nobu BOSS.", "error");
+      showToast("Pilih file PDF e-Statement Mandiri.", "error");
       return;
     }
 
@@ -65,7 +65,7 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
         formData.append("password", pdfPassword);
       }
 
-      const res = await fetch("/api/parse-nobu-pdf", {
+      const res = await fetch("/api/parse-mandiri-pdf", {
         method: "POST",
         body: formData,
       });
@@ -89,7 +89,7 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
       const rows: ParsedCSVRow[] = json.rows;
 
       if (!rows || rows.length === 0) {
-        showToast("Tidak ditemukan transaksi Nobu BOSS dalam PDF ini.", "error");
+        showToast("Tidak ditemukan transaksi Mandiri dalam PDF ini.", "error");
       } else {
         setPreviewRows(rows);
         setShowPasswordInput(false);
@@ -130,7 +130,7 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
       const { error } = await supabase.from("transactions").insert(toInsert);
       if (error) throw error;
 
-      showToast(`Berhasil impor ${previewRows.length} transaksi Nobu!`, "success");
+      showToast(`Berhasil impor ${previewRows.length} transaksi Mandiri!`, "success");
       setPreviewRows(null);
       onSuccess();
     } catch (err: any) {
@@ -178,7 +178,7 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
         <div className="flex max-h-[85vh] flex-col">
           <header className="flex items-center justify-between p-6 sm:p-8 border-b border-border/10 dark:border-slate-800">
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Preview Mutasi Nobu</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Preview Mutasi Mandiri</h3>
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">Ditemukan {previewRows.length} transaksi.</p>
             </div>
             <button 
@@ -460,11 +460,11 @@ export function ImportNobuPDF({ userId, onSuccess, customCategories = [], hidden
             {loading ? (
                <svg className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
             ) : (
-              <img src="/nobu logo.webp" alt="Nobu Bank" className="h-full w-full object-contain" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" alt="Bank Mandiri" className="h-full w-full object-contain p-0.5" />
             )}
           </div>
           <div className="mt-1">
-             <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Nobu</p>
+             <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Mandiri</p>
              <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">Ber-password</p>
           </div>
         </div>

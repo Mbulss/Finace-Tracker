@@ -20,6 +20,7 @@ import { SkeletonCard, SkeletonTable } from "./Skeleton";
 import { SpendingInsights } from "./SpendingInsights";
 import { ImportCSV } from "./ImportCSV";
 import { ImportNobuPDF } from "./ImportNobuPDF";
+import { ImportMandiriPDF } from "./ImportMandiriPDF";
 
 interface DashboardProps {
   userId: string;
@@ -235,9 +236,19 @@ export function Dashboard({ userId }: DashboardProps) {
   };
 
   const handleDeleteAll = async () => {
-    const { error } = await supabase.from("transactions").delete().eq("user_id", userId);
+    let query = supabase.from("transactions").delete().eq("user_id", userId);
+
+    if (periodType === "month") {
+      const [y, m] = monthFilter.split("-").map(Number);
+      const startDate = `${monthFilter}-01T00:00:00.000Z`;
+      const nextMonth = new Date(Date.UTC(y, m, 1));
+      const endDate = nextMonth.toISOString();
+      query = query.gte("created_at", startDate).lt("created_at", endDate);
+    }
+
+    const { error } = await query;
     if (error) {
-      showToast("Gagal menghapus semua transaksi", "error");
+      showToast("Gagal menghapus transaksi", "error");
       return;
     }
     await fetchTransactions();
@@ -581,6 +592,8 @@ export function Dashboard({ userId }: DashboardProps) {
           hiddenCategories={hiddenCategories}
           userId={userId}
           onRefreshCategories={() => { fetchCustomCategories(); fetchHiddenCategories(); }}
+          periodLabel={periodLabel}
+          isAllPeriod={periodType === "all"}
         />
 
       </section>
@@ -608,7 +621,7 @@ export function Dashboard({ userId }: DashboardProps) {
              <div className="relative flex items-center justify-between mb-8">
                 <div>
                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Impor Data</h3>
-                   <p className="mt-0.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Upload file CSV atau PDF Mutasi Nobu BOSS</p>
+                   <p className="mt-0.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Upload file CSV atau PDF Mutasi Bank</p>
                 </div>
                 <button 
                   onClick={() => setShowImport(false)} 
@@ -625,23 +638,36 @@ export function Dashboard({ userId }: DashboardProps) {
                       fetchTransactions();
                    }}
                 />
+                
                 <div className="relative">
                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
                       <div className="w-full border-t border-border/10 dark:border-slate-800"></div>
                    </div>
                    <div className="relative flex justify-center text-[8px] font-black uppercase tracking-widest">
-                      <span className="bg-white/95 dark:bg-slate-900/95 px-2 text-slate-400">ATAU</span>
+                      <span className="bg-white/95 dark:bg-slate-900/95 px-2 text-slate-400">ATAU IMPOR MUTASI BANK</span>
                    </div>
                 </div>
-                <ImportNobuPDF
-                   userId={userId}
-                   onSuccess={() => {
-                      setShowImport(false);
-                      fetchTransactions();
-                   }}
-                   customCategories={customCategories}
-                   hiddenCategories={hiddenCategories}
-                />
+
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                   <ImportNobuPDF
+                      userId={userId}
+                      onSuccess={() => {
+                         setShowImport(false);
+                         fetchTransactions();
+                      }}
+                      customCategories={customCategories}
+                      hiddenCategories={hiddenCategories}
+                   />
+                   <ImportMandiriPDF
+                      userId={userId}
+                      onSuccess={() => {
+                         setShowImport(false);
+                         fetchTransactions();
+                      }}
+                      customCategories={customCategories}
+                      hiddenCategories={hiddenCategories}
+                   />
+                </div>
              </div>
           </div>
         </div>,
